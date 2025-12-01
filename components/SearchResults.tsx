@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
-import { Calendar, Star } from 'lucide-react';
+import { Calendar, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import type { TMDBMovie } from '@/lib/types';
 import { getPosterUrl } from '@/lib/tmdb';
 
@@ -11,15 +12,31 @@ interface SearchResultsProps {
   onClose: () => void;
 }
 
+const INITIAL_RESULTS = 8;
+const LOAD_MORE_COUNT = 8;
+
 export default function SearchResults({
   results,
   onSelect,
   onClose,
 }: SearchResultsProps) {
+  const [visibleCount, setVisibleCount] = useState(INITIAL_RESULTS);
+
+  const showMore = () => {
+    setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, results.length));
+  };
+
+  const showLess = () => {
+    setVisibleCount(INITIAL_RESULTS);
+  };
+
+  const visibleResults = results.slice(0, visibleCount);
+  const remainingCount = results.length - visibleCount;
+
   return (
     <div className="absolute w-full mt-2 bg-dark-200 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 max-h-[60vh] overflow-y-auto">
       <ul className="divide-y divide-white/5">
-        {results.slice(0, 8).map((movie) => (
+        {visibleResults.map((movie) => (
           <li key={movie.id}>
             <button
               onClick={() => onSelect(movie)}
@@ -83,10 +100,27 @@ export default function SearchResults({
         ))}
       </ul>
 
-      {/* Footer avec nombre de résultats */}
-      {results.length > 8 && (
-        <div className="p-3 bg-white/5 text-center text-sm text-gray-400">
-          {results.length - 8} autres résultats...
+      {/* Footer avec boutons voir plus/moins */}
+      {results.length > INITIAL_RESULTS && (
+        <div className="p-2 bg-white/5 border-t border-white/5">
+          {remainingCount > 0 ? (
+            <button
+              onClick={showMore}
+              className="w-full p-2 text-sm text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <ChevronDown className="w-4 h-4" />
+              Voir {Math.min(remainingCount, LOAD_MORE_COUNT)} autres résultats
+              {remainingCount > LOAD_MORE_COUNT && ` (${remainingCount} restants)`}
+            </button>
+          ) : (
+            <button
+              onClick={showLess}
+              className="w-full p-2 text-sm text-gray-400 hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <ChevronUp className="w-4 h-4" />
+              Réduire la liste
+            </button>
+          )}
         </div>
       )}
     </div>
