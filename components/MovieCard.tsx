@@ -48,11 +48,15 @@ export default function MovieCard({ review, onSelect }: MovieCardProps) {
 
         {/* Badge note globale */}
         <div
-          className={`absolute top-2 right-2 px-2 py-1 rounded-lg ${getRatingColor(
-            review.rating_global
-          )} font-bold text-sm flex items-center gap-1`}
+          className={`absolute top-2 right-2 px-2.5 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 shadow-lg backdrop-blur-sm border ${
+            review.rating_global >= 7
+              ? 'bg-green-600/90 text-white border-green-400/50'
+              : review.rating_global >= 5
+              ? 'bg-yellow-500/90 text-black border-yellow-300/50'
+              : 'bg-red-600/90 text-white border-red-400/50'
+          }`}
         >
-          <Star className="w-3 h-3" fill="currentColor" />
+          <Star className="w-3.5 h-3.5" fill="currentColor" />
           {review.rating_global.toFixed(1)}
         </div>
 
