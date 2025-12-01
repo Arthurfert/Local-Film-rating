@@ -4,6 +4,9 @@ import StatsCard from '@/components/StatsCard';
 import DashboardContent from '@/components/DashboardContent';
 import { getAllReviews, getStats, getMonthlyReviews } from '@/lib/db';
 
+// Forcer le rendu dynamique (pas de cache)
+export const dynamic = 'force-dynamic';
+
 // Page principale - Server Component
 export default async function DashboardPage() {
   // Charger les données côté serveur
