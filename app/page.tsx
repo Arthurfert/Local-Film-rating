@@ -27,8 +27,7 @@ export default async function DashboardPage() {
             </span>
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Recherchez, notez et gardez une trace de tous les films que vous avez vus
-            avec un système de notation détaillé.
+            Recherchez, notez et gardez une trace de tous les films que vous avez vus.
           </p>
         </div>
 
