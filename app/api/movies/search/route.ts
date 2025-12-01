@@ -4,6 +4,8 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { searchMovies } from '@/lib/tmdb';
 
 export async function GET(request: NextRequest) {

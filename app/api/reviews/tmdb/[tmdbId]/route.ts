@@ -3,6 +3,8 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { getReviewByTmdbId } from '@/lib/db';
 
 export async function GET(

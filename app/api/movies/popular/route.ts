@@ -3,6 +3,8 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { getPopularMovies, getTrendingMovies } from '@/lib/tmdb';
 
 export async function GET(request: NextRequest) {

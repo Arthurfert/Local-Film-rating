@@ -3,6 +3,8 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { getReviewById, updateReview, deleteReview } from '@/lib/db';
 
 // GET - Récupérer une review par ID

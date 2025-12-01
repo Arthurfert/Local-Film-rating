@@ -3,6 +3,8 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { getAllReviews, createReview, getStats, getMonthlyReviews } from '@/lib/db';
 
 // GET - Récupérer toutes les reviews
