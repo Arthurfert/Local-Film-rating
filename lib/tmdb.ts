@@ -2,7 +2,14 @@
 // Utilitaires pour l'API TMDB (côté serveur uniquement)
 // ============================================
 
-import type { TMDBSearchResponse, TMDBMovieDetails } from './types';
+import type { 
+  TMDBSearchResponse, 
+  TMDBMovieDetails, 
+  TMDBTVSearchResponse, 
+  TMDBTVShowDetails,
+  TMDBMediaItem,
+  MediaType 
+} from './types';
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -133,6 +140,115 @@ export async function getTrendingMovies(
   }
 
   return response.json();
+}
+
+// ============================================
+// Fonctions API pour les séries TV
+// ============================================
+
+export async function searchTVShows(
+  query: string,
+  page: number = 1,
+  language: string = 'fr-FR'
+): Promise<TMDBTVSearchResponse> {
+  const url = buildUrl('/search/tv', {
+    query: encodeURIComponent(query),
+    page: page.toString(),
+    language,
+    include_adult: 'false',
+  });
+
+  const response = await fetch(url, {
+    headers: getHeaders(),
+    next: { revalidate: 3600 },
+  });
+
+  if (!response.ok) {
+    throw new Error(`TMDB API Error: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getTVShowDetails(
+  tvId: number,
+  language: string = 'fr-FR'
+): Promise<TMDBTVShowDetails> {
+  const url = buildUrl(`/tv/${tvId}`, {
+    language,
+  });
+
+  const response = await fetch(url, {
+    headers: getHeaders(),
+    next: { revalidate: 86400 },
+  });
+
+  if (!response.ok) {
+    throw new Error(`TMDB API Error: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+// ============================================
+// Fonction de recherche multi (films + séries)
+// ============================================
+
+export async function searchMulti(
+  query: string,
+  page: number = 1,
+  language: string = 'fr-FR'
+): Promise<{ results: TMDBMediaItem[]; total_results: number; total_pages: number; page: number }> {
+  // Rechercher films et séries en parallèle
+  const [moviesResponse, tvResponse] = await Promise.all([
+    searchMovies(query, page, language),
+    searchTVShows(query, page, language),
+  ]);
+
+  // Normaliser les résultats des films
+  const normalizedMovies: TMDBMediaItem[] = moviesResponse.results.map((movie) => ({
+    id: movie.id,
+    title: movie.title,
+    original_title: movie.original_title,
+    overview: movie.overview,
+    poster_path: movie.poster_path,
+    backdrop_path: movie.backdrop_path,
+    release_date: movie.release_date,
+    vote_average: movie.vote_average,
+    vote_count: movie.vote_count,
+    popularity: movie.popularity,
+    genre_ids: movie.genre_ids,
+    original_language: movie.original_language,
+    media_type: 'movie' as MediaType,
+  }));
+
+  // Normaliser les résultats des séries
+  const normalizedTV: TMDBMediaItem[] = tvResponse.results.map((tv) => ({
+    id: tv.id,
+    title: tv.name,
+    original_title: tv.original_name,
+    overview: tv.overview,
+    poster_path: tv.poster_path,
+    backdrop_path: tv.backdrop_path,
+    release_date: tv.first_air_date,
+    vote_average: tv.vote_average,
+    vote_count: tv.vote_count,
+    popularity: tv.popularity,
+    genre_ids: tv.genre_ids,
+    original_language: tv.original_language,
+    media_type: 'tv' as MediaType,
+  }));
+
+  // Combiner et trier par popularité
+  const combinedResults = [...normalizedMovies, ...normalizedTV]
+    .sort((a, b) => b.popularity - a.popularity);
+
+  return {
+    results: combinedResults,
+    total_results: moviesResponse.total_results + tvResponse.total_results,
+    total_pages: Math.max(moviesResponse.total_pages, tvResponse.total_pages),
+    page,
+  };
 }
 
 // ============================================

@@ -23,7 +23,7 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
         r.title.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : initialReviews;
-
+ 
   // Trier les reviews selon l'option sélectionnée
   const sortedReviews = [...filteredReviews].sort((a, b) => {
     switch (sortBy) {

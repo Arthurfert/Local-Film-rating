@@ -62,18 +62,28 @@ export async function getReviewById(reviewId: string): Promise<Review | null> {
   return db.reviews.find((r) => r.id === reviewId) || null;
 }
 
-export async function getReviewByTmdbId(tmdbId: number): Promise<Review | null> {
+export async function getReviewByTmdbId(
+  tmdbId: number,
+  mediaType?: 'movie' | 'tv'
+): Promise<Review | null> {
   const db = await readDatabase();
-  return db.reviews.find((r) => r.tmdb_id === tmdbId) || null;
+  return db.reviews.find((r) => {
+    if (mediaType) {
+      return r.tmdb_id === tmdbId && r.media_type === mediaType;
+    }
+    return r.tmdb_id === tmdbId;
+  }) || null;
 }
 
 export async function createReview(reviewData: ReviewFormData): Promise<Review> {
   const db = await readDatabase();
   
-  // Vérifier si le film n'est pas déjà noté
-  const existing = db.reviews.find((r) => r.tmdb_id === reviewData.tmdb_id);
+  // Vérifier si le média n'est pas déjà noté (même tmdb_id ET même media_type)
+  const existing = db.reviews.find(
+    (r) => r.tmdb_id === reviewData.tmdb_id && r.media_type === reviewData.media_type
+  );
   if (existing) {
-    throw new Error('Ce film a déjà été noté');
+    throw new Error(reviewData.media_type === 'tv' ? 'Cette série a déjà été notée' : 'Ce film a déjà été noté');
   }
 
   // Calculer la note globale
@@ -92,6 +102,7 @@ export async function createReview(reviewData: ReviewFormData): Promise<Review> 
     id: uuidv4(),
     user_id: 'local-user', // Utilisateur local unique
     tmdb_id: reviewData.tmdb_id,
+    media_type: reviewData.media_type,
     title: reviewData.title,
     original_title: reviewData.original_title || null,
     poster_path: reviewData.poster_path || null,
@@ -100,6 +111,8 @@ export async function createReview(reviewData: ReviewFormData): Promise<Review> 
     overview: reviewData.overview || null,
     genres: reviewData.genres || [],
     runtime: reviewData.runtime || null,
+    number_of_seasons: reviewData.number_of_seasons || null,
+    number_of_episodes: reviewData.number_of_episodes || null,
     rating_scenario: reviewData.rating_scenario,
     rating_visual: reviewData.rating_visual,
     rating_music: reviewData.rating_music,

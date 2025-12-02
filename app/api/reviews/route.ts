@@ -50,12 +50,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // S'assurer que media_type est défini (par défaut 'movie' pour la rétrocompatibilité)
+    if (!body.media_type) {
+      body.media_type = 'movie';
+    }
+
     const review = await createReview(body);
     return NextResponse.json({ review }, { status: 201 });
   } catch (error) {
     console.error('Error creating review:', error);
     
-    if (error instanceof Error && error.message === 'Ce film a déjà été noté') {
+    if (error instanceof Error && (
+      error.message === 'Ce film a déjà été noté' || 
+      error.message === 'Cette série a déjà été notée'
+    )) {
       return NextResponse.json(
         { error: error.message },
         { status: 409 }

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { Calendar, Clock, Star, ArrowLeft } from 'lucide-react';
+import { Calendar, Clock, Star, ArrowLeft, Film } from 'lucide-react';
 import { getMovieDetails, getPosterUrl, getBackdropUrl } from '@/lib/tmdb';
 import { getReviewByTmdbId } from '@/lib/db';
 import RatingFormClient from './RatingFormClient';
@@ -26,7 +26,7 @@ export default async function RatePage({ params }: RatePageProps) {
   }
 
   // Vérifier si le film a déjà été noté
-  const existingReview = await getReviewByTmdbId(movieId);
+  const existingReview = await getReviewByTmdbId(movieId, 'movie');
 
   return (
     <div className="min-h-screen">
@@ -55,6 +55,12 @@ export default async function RatePage({ params }: RatePageProps) {
           <ArrowLeft className="w-4 h-4" />
           Retour
         </a>
+
+        {/* Badge Film */}
+        <div className="absolute top-4 right-4 px-3 py-1.5 bg-blue-600 rounded-full text-sm font-medium flex items-center gap-1.5">
+          <Film className="w-4 h-4" />
+          Film
+        </div>
       </div>
 
       {/* Content */}

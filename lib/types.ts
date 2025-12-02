@@ -3,6 +3,12 @@
 // ============================================
 
 // ============================================
+// Types communs
+// ============================================
+
+export type MediaType = 'movie' | 'tv';
+
+// ============================================
 // Types TMDB API
 // ============================================
 
@@ -21,6 +27,42 @@ export interface TMDBMovie {
   adult: boolean;
   original_language: string;
   video: boolean;
+  media_type?: MediaType;
+}
+
+// Type pour les séries TV
+export interface TMDBTVShow {
+  id: number;
+  name: string;
+  original_name: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  first_air_date: string;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  genre_ids: number[];
+  origin_country: string[];
+  original_language: string;
+  media_type?: MediaType;
+}
+
+// Type unifié pour les résultats de recherche (films + séries)
+export interface TMDBMediaItem {
+  id: number;
+  title: string; // title pour films, name pour séries (normalisé)
+  original_title: string; // original_title pour films, original_name pour séries (normalisé)
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date: string; // release_date pour films, first_air_date pour séries (normalisé)
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  genre_ids: number[];
+  original_language: string;
+  media_type: MediaType;
 }
 
 export interface TMDBMovieDetails extends Omit<TMDBMovie, 'genre_ids'> {
@@ -35,6 +77,23 @@ export interface TMDBMovieDetails extends Omit<TMDBMovie, 'genre_ids'> {
   spoken_languages: TMDBSpokenLanguage[];
   imdb_id: string | null;
   homepage: string | null;
+}
+
+// Détails d'une série TV
+export interface TMDBTVShowDetails extends Omit<TMDBTVShow, 'genre_ids'> {
+  genres: TMDBGenre[];
+  episode_run_time: number[];
+  number_of_seasons: number;
+  number_of_episodes: number;
+  status: string;
+  tagline: string;
+  created_by: { id: number; name: string; profile_path: string | null }[];
+  networks: { id: number; name: string; logo_path: string | null }[];
+  production_companies: TMDBProductionCompany[];
+  spoken_languages: TMDBSpokenLanguage[];
+  homepage: string | null;
+  in_production: boolean;
+  last_air_date: string | null;
 }
 
 export interface TMDBGenre {
@@ -67,6 +126,13 @@ export interface TMDBSearchResponse {
   total_results: number;
 }
 
+export interface TMDBTVSearchResponse {
+  page: number;
+  results: TMDBTVShow[];
+  total_pages: number;
+  total_results: number;
+}
+
 // ============================================
 // Types Application
 // ============================================
@@ -82,6 +148,7 @@ export interface Review {
   id: string;
   user_id: string;
   tmdb_id: number;
+  media_type: MediaType;
   title: string;
   original_title: string | null;
   poster_path: string | null;
@@ -90,6 +157,8 @@ export interface Review {
   overview: string | null;
   genres: string[];
   runtime: number | null;
+  number_of_seasons?: number | null;
+  number_of_episodes?: number | null;
   rating_scenario: number;
   rating_visual: number;
   rating_music: number;
@@ -104,6 +173,7 @@ export interface Review {
 
 export interface ReviewFormData {
   tmdb_id: number;
+  media_type: MediaType;
   title: string;
   original_title?: string;
   poster_path?: string;
@@ -112,6 +182,8 @@ export interface ReviewFormData {
   overview?: string;
   genres?: string[];
   runtime?: number;
+  number_of_seasons?: number;
+  number_of_episodes?: number;
   rating_scenario: number;
   rating_visual: number;
   rating_music: number;
@@ -178,6 +250,13 @@ export interface ApiResponse<T> {
 
 export interface SearchMoviesResponse {
   movies: TMDBMovie[];
+  totalResults: number;
+  totalPages: number;
+  page: number;
+}
+
+export interface SearchMediaResponse {
+  results: TMDBMediaItem[];
   totalResults: number;
   totalPages: number;
   page: number;

@@ -2,11 +2,18 @@
 
 import { useState } from 'react';
 import { BookOpen, Eye, Music, Users, Star, Heart, Save, Loader2 } from 'lucide-react';
-import type { TMDBMovieDetails, MovieRating, ReviewFormData } from '@/lib/types';
+import type { TMDBMovieDetails, MovieRating, ReviewFormData, MediaType } from '@/lib/types';
 import RatingSlider from './RatingSlider';
 
+interface ExtendedMovieDetails extends TMDBMovieDetails {
+  media_type?: MediaType;
+  number_of_seasons?: number;
+  number_of_episodes?: number;
+}
+
 interface RatingFormProps {
-  movie: TMDBMovieDetails;
+  movie: ExtendedMovieDetails;
+  mediaType?: MediaType;
   initialData?: Partial<ReviewFormData>;
   onSubmit: (data: ReviewFormData) => Promise<void>;
   isEditing?: boolean;
@@ -35,6 +42,7 @@ const RATING_DESCRIPTIONS = {
 
 export default function RatingForm({
   movie,
+  mediaType = 'movie',
   initialData,
   onSubmit,
   isEditing = false,
@@ -67,6 +75,7 @@ export default function RatingForm({
     try {
       const formData: ReviewFormData = {
         tmdb_id: movie.id,
+        media_type: mediaType,
         title: movie.title,
         original_title: movie.original_title,
         poster_path: movie.poster_path ?? undefined,
@@ -75,6 +84,8 @@ export default function RatingForm({
         overview: movie.overview,
         genres: movie.genres.map((g) => g.name),
         runtime: movie.runtime,
+        number_of_seasons: movie.number_of_seasons,
+        number_of_episodes: movie.number_of_episodes,
         rating_scenario: ratings.scenario,
         rating_visual: ratings.visual,
         rating_music: ratings.music,
@@ -164,7 +175,7 @@ export default function RatingForm({
           id="review"
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
-          placeholder="Qu'avez-vous pensé de ce film ?"
+          placeholder={mediaType === 'tv' ? 'Qu\'avez-vous pensé de cette série ?' : 'Qu\'avez-vous pensé de ce film ?'}
           rows={4}
           className="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white 
                    placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 

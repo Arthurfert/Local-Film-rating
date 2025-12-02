@@ -13,6 +13,8 @@ import {
   Users,
   Edit,
   Trash2,
+  Film,
+  Tv,
 } from 'lucide-react';
 import { getReviewById } from '@/lib/db';
 import { getPosterUrl, getBackdropUrl } from '@/lib/tmdb';
@@ -28,6 +30,8 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
   if (!review) {
     notFound();
   }
+
+  const isTV = review.media_type === 'tv';
 
   // Couleur basée sur la note
   const getRatingColor = (rating: number) => {
@@ -70,10 +74,18 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
           Retour
         </Link>
 
+        {/* Badge Film/Série */}
+        <div className={`absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 ${
+          isTV ? 'bg-purple-600' : 'bg-blue-600'
+        }`}>
+          {isTV ? <Tv className="w-4 h-4" /> : <Film className="w-4 h-4" />}
+          {isTV ? 'Série TV' : 'Film'}
+        </div>
+
         {/* Actions */}
         <div className="absolute top-4 right-4 flex gap-2">
           <Link
-            href={`/rate/${review.tmdb_id}`}
+            href={isTV ? `/rate-tv/${review.tmdb_id}` : `/rate/${review.tmdb_id}`}
             className="flex items-center gap-2 px-4 py-2 bg-blue-500/80 backdrop-blur-sm rounded-full text-sm hover:bg-blue-500 transition-colors"
           >
             <Edit className="w-4 h-4" />
@@ -134,12 +146,18 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                   })}
                 </span>
               )}
-              {review.runtime && (
+              {/* Durée pour les films, saisons/épisodes pour les séries */}
+              {isTV && review.number_of_seasons ? (
+                <span className="flex items-center gap-1 text-gray-400">
+                  <Tv className="w-4 h-4" />
+                  {review.number_of_seasons} saison{review.number_of_seasons > 1 ? 's' : ''} • {review.number_of_episodes} épisodes
+                </span>
+              ) : review.runtime ? (
                 <span className="flex items-center gap-1 text-gray-400">
                   <Clock className="w-4 h-4" />
                   {Math.floor(review.runtime / 60)}h {review.runtime % 60}min
                 </span>
-              )}
+              ) : null}
               {review.watched_date && (
                 <span className="flex items-center gap-1 text-gray-400">
                   <Eye className="w-4 h-4" />

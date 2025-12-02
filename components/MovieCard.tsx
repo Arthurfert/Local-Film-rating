@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Star, Heart, Calendar, Clock } from 'lucide-react';
+import { Star, Heart, Calendar, Clock, Film, Tv } from 'lucide-react';
 import type { Review } from '@/lib/types';
 import { getPosterUrl } from '@/lib/tmdb';
 
@@ -11,6 +11,8 @@ interface MovieCardProps {
 }
 
 export default function MovieCard({ review, onSelect }: MovieCardProps) {
+  const isTV = review.media_type === 'tv';
+  
   // Couleur basée sur la note
   const getRatingColor = (rating: number) => {
     if (rating >= 7) return 'text-green-400 bg-green-500/20';
@@ -39,9 +41,17 @@ export default function MovieCard({ review, onSelect }: MovieCardProps) {
           </div>
         )}
 
+        {/* Badge Film/Série */}
+        <div className={`absolute top-2 left-2 px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 ${
+          isTV ? 'bg-purple-600' : 'bg-blue-600'
+        }`}>
+          {isTV ? <Tv className="w-3 h-3" /> : <Film className="w-3 h-3" />}
+          {isTV ? 'Série' : 'Film'}
+        </div>
+
         {/* Badge favori */}
         {review.is_favorite && (
-          <div className="absolute top-2 left-2 p-1.5 bg-red-500 rounded-full">
+          <div className="absolute top-10 left-2 p-1.5 bg-red-500 rounded-full">
             <Heart className="w-4 h-4 text-white fill-white" />
           </div>
         )}
@@ -106,12 +116,18 @@ export default function MovieCard({ review, onSelect }: MovieCardProps) {
               {new Date(review.release_date).getFullYear()}
             </span>
           )}
-          {review.runtime && (
+          {/* Durée pour les films, saisons/épisodes pour les séries */}
+          {isTV && review.number_of_seasons ? (
+            <span className="flex items-center gap-1">
+              <Tv className="w-3 h-3" />
+              {review.number_of_seasons}S • {review.number_of_episodes}E
+            </span>
+          ) : review.runtime ? (
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {Math.floor(review.runtime / 60)}h{review.runtime % 60}m
             </span>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

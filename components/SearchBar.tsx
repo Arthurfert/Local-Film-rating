@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
-import type { TMDBMovie, SearchMoviesResponse, Review } from '@/lib/types';
+import type { TMDBMediaItem, SearchMediaResponse, Review } from '@/lib/types';
 import SearchResults from './SearchResults';
 
 export default function SearchBar() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<TMDBMovie[]>([]);
+  const [results, setResults] = useState<TMDBMediaItem[]>([]);
   const [existingReviews, setExistingReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -29,8 +29,8 @@ export default function SearchBar() {
     fetchReviews();
   }, []);
 
-  // Debounced search
-  const searchMovies = useCallback(async (searchQuery: string) => {
+  // Debounced search (films + séries)
+  const searchMedia = useCallback(async (searchQuery: string) => {
     if (searchQuery.trim().length < 2) {
       setResults([]);
       setIsOpen(false);
@@ -42,15 +42,15 @@ export default function SearchBar() {
 
     try {
       const response = await fetch(
-        `/api/movies/search?query=${encodeURIComponent(searchQuery)}`
+        `/api/search?query=${encodeURIComponent(searchQuery)}`
       );
 
       if (!response.ok) {
         throw new Error('Erreur lors de la recherche');
       }
 
-      const data: SearchMoviesResponse = await response.json();
-      setResults(data.movies);
+      const data: SearchMediaResponse = await response.json();
+      setResults(data.results);
       setIsOpen(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
@@ -63,11 +63,11 @@ export default function SearchBar() {
   // Debounce effect
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      searchMovies(query);
+      searchMedia(query);
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [query, searchMovies]);
+  }, [query, searchMedia]);
 
   // Fermer les résultats si on clique en dehors
   useEffect(() => {
@@ -88,10 +88,14 @@ export default function SearchBar() {
     setIsOpen(false);
   };
 
-  const handleSelectMovie = (movie: TMDBMovie) => {
+  const handleSelectMedia = (media: TMDBMediaItem) => {
     setIsOpen(false);
-    // Naviguer vers la page de notation
-    window.location.href = `/rate/${movie.id}`;
+    // Naviguer vers la page de notation appropriée
+    if (media.media_type === 'tv') {
+      window.location.href = `/rate-tv/${media.id}`;
+    } else {
+      window.location.href = `/rate/${media.id}`;
+    }
   };
 
   return (
@@ -105,7 +109,7 @@ export default function SearchBar() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => results.length > 0 && setIsOpen(true)}
-            placeholder="Rechercher un film..."
+            placeholder="Rechercher un film ou une série..."
             className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl 
                      text-white placeholder-gray-400 focus:outline-none focus:ring-2 
                      focus:ring-red-500/50 focus:border-red-500/50 transition-all"
@@ -134,7 +138,7 @@ export default function SearchBar() {
           <SearchResults
             results={results}
             existingReviews={existingReviews}
-            onSelect={handleSelectMovie}
+            onSelect={handleSelectMedia}
             onClose={() => setIsOpen(false)}
           />
         )}
@@ -142,7 +146,7 @@ export default function SearchBar() {
         {/* Message si aucun résultat */}
         {isOpen && query.length >= 2 && results.length === 0 && !isLoading && (
           <div className="absolute w-full mt-2 p-4 bg-dark-200 border border-white/10 rounded-xl text-center text-gray-400">
-            Aucun film trouvé pour "{query}"
+            Aucun résultat trouvé pour "{query}"
           </div>
         )}
       </div>
