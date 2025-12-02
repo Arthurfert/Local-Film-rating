@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Film Rating - Votre collection de films notés',
+  title: 'Personal Film Rating',
   description: 'Application personnelle de notation de films avec critères détaillés',
   keywords: ['films', 'notation', 'reviews', 'cinéma', 'collection'],
 };

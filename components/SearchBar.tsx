@@ -2,15 +2,32 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
-import type { TMDBMovie, SearchMoviesResponse } from '@/lib/types';
+import type { TMDBMovie, SearchMoviesResponse, Review } from '@/lib/types';
 import SearchResults from './SearchResults';
 
 export default function SearchBar() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<TMDBMovie[]>([]);
+  const [existingReviews, setExistingReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Charger les reviews existantes au montage
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch('/api/reviews');
+        if (response.ok) {
+          const data = await response.json();
+          setExistingReviews(data.reviews || []);
+        }
+      } catch (err) {
+        console.error('Erreur lors du chargement des reviews:', err);
+      }
+    };
+    fetchReviews();
+  }, []);
 
   // Debounced search
   const searchMovies = useCallback(async (searchQuery: string) => {
@@ -116,6 +133,7 @@ export default function SearchBar() {
         {isOpen && results.length > 0 && (
           <SearchResults
             results={results}
+            existingReviews={existingReviews}
             onSelect={handleSelectMovie}
             onClose={() => setIsOpen(false)}
           />
