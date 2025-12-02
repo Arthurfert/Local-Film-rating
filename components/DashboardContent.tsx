@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X } from 'lucide-react';
-import type { Review } from '@/lib/types';
+import { Search, X, Film, Tv } from 'lucide-react';
+import type { Review, MediaType } from '@/lib/types';
 import MovieGrid from './MovieGrid';
 
 type SortOption = 'recent' | 'top-rated' | 'favorites';
+type MediaFilter = 'all' | 'movie' | 'tv';
 
 interface DashboardContentProps {
   initialReviews: Review[];
@@ -15,14 +16,27 @@ interface DashboardContentProps {
 export default function DashboardContent({ initialReviews }: DashboardContentProps) {
   const router = useRouter();
   const [sortBy, setSortBy] = useState<SortOption>('recent');
+  const [mediaFilter, setMediaFilter] = useState<MediaFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Compter les films et séries
+  const movieCount = initialReviews.filter((r) => r.media_type !== 'tv').length;
+  const tvCount = initialReviews.filter((r) => r.media_type === 'tv').length;
+
+  // Filtrer par type de média
+  const mediaFilteredReviews = mediaFilter === 'all'
+    ? initialReviews
+    : initialReviews.filter((r) => {
+        if (mediaFilter === 'movie') return r.media_type !== 'tv';
+        return r.media_type === 'tv';
+      });
 
   // Filtrer par recherche
   const filteredReviews = searchQuery.trim()
-    ? initialReviews.filter((r) =>
+    ? mediaFilteredReviews.filter((r) =>
         r.title.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : initialReviews;
+    : mediaFilteredReviews;
  
   // Trier les reviews selon l'option sélectionnée
   const sortedReviews = [...filteredReviews].sort((a, b) => {
@@ -53,7 +67,7 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
   return (
     <section>
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-bold">Mes Films Notés</h2>
+        <h2 className="text-2xl font-bold">Ma Collection</h2>
         
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Barre de recherche dans les films notés */}
@@ -63,8 +77,8 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher dans mes films..."
-              className="pl-10 pr-10 py-2 bg-white/5 border border-white/10 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 w-full sm:w-64"
+              placeholder="Rechercher..."
+              className="pl-10 pr-10 py-2 bg-white/5 border border-white/10 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 w-full sm:w-48"
             />
             {searchQuery && (
               <button
@@ -74,6 +88,42 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
                 <X className="w-4 h-4" />
               </button>
             )}
+          </div>
+
+          {/* Filtres par type de média */}
+          <div className="flex gap-1 p-1 bg-white/5 rounded-lg">
+            <button
+              onClick={() => setMediaFilter('all')}
+              className={`px-3 py-1.5 rounded-md transition-colors text-sm ${
+                mediaFilter === 'all'
+                  ? 'bg-white/15 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Tout ({initialReviews.length})
+            </button>
+            <button
+              onClick={() => setMediaFilter('movie')}
+              className={`px-3 py-1.5 rounded-md transition-colors text-sm flex items-center gap-1.5 ${
+                mediaFilter === 'movie'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Film className="w-3.5 h-3.5" />
+              Films ({movieCount})
+            </button>
+            <button
+              onClick={() => setMediaFilter('tv')}
+              className={`px-3 py-1.5 rounded-md transition-colors text-sm flex items-center gap-1.5 ${
+                mediaFilter === 'tv'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Tv className="w-3.5 h-3.5" />
+              Séries ({tvCount})
+            </button>
           </div>
 
           {/* Boutons de tri */}
@@ -113,9 +163,16 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
       </div>
 
       {/* Message si aucun résultat */}
-      {searchQuery && displayedReviews.length === 0 && (
+      {displayedReviews.length === 0 && (
         <div className="text-center py-12 text-gray-400">
-          Aucun film trouvé pour "{searchQuery}"
+          {searchQuery 
+            ? `Aucun résultat pour "${searchQuery}"`
+            : mediaFilter === 'tv' 
+              ? 'Aucune série notée'
+              : mediaFilter === 'movie'
+                ? 'Aucun film noté'
+                : 'Aucun contenu noté'
+          }
         </div>
       )}
 
