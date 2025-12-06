@@ -7,9 +7,10 @@ import MovieCard from './MovieCard';
 interface MovieGridProps {
   reviews: Review[];
   onSelectReview?: (review: Review) => void;
+  onFavoriteToggle?: (reviewId: string, isFavorite: boolean) => void;
 }
 
-export default function MovieGrid({ reviews, onSelectReview }: MovieGridProps) {
+export default function MovieGrid({ reviews, onSelectReview, onFavoriteToggle }: MovieGridProps) {
   if (reviews.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -33,6 +34,7 @@ export default function MovieGrid({ reviews, onSelectReview }: MovieGridProps) {
           key={review.id}
           review={review}
           onSelect={onSelectReview}
+          onFavoriteToggle={onFavoriteToggle}
         />
       ))}
     </div>

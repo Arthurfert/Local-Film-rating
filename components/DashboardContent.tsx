@@ -18,15 +18,16 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [mediaFilter, setMediaFilter] = useState<MediaFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [reviews, setReviews] = useState<Review[]>(initialReviews);
 
   // Compter les films et séries
-  const movieCount = initialReviews.filter((r) => r.media_type !== 'tv').length;
-  const tvCount = initialReviews.filter((r) => r.media_type === 'tv').length;
+  const movieCount = reviews.filter((r) => r.media_type !== 'tv').length;
+  const tvCount = reviews.filter((r) => r.media_type === 'tv').length;
 
   // Filtrer par type de média
   const mediaFilteredReviews = mediaFilter === 'all'
-    ? initialReviews
-    : initialReviews.filter((r) => {
+    ? reviews
+    : reviews.filter((r) => {
         if (mediaFilter === 'movie') return r.media_type !== 'tv';
         return r.media_type === 'tv';
       });
@@ -62,6 +63,15 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
 
   const handleSelectReview = (review: Review) => {
     router.push(`/review/${review.id}`);
+  };
+
+  const handleFavoriteToggle = (reviewId: string, isFavorite: boolean) => {
+    // Mettre à jour localement l'état
+    setReviews((prevReviews) =>
+      prevReviews.map((r) =>
+        r.id === reviewId ? { ...r, is_favorite: isFavorite } : r
+      )
+    );
   };
 
   return (
@@ -176,7 +186,11 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
         </div>
       )}
 
-      <MovieGrid reviews={displayedReviews} onSelectReview={handleSelectReview} />
+      <MovieGrid 
+        reviews={displayedReviews} 
+        onSelectReview={handleSelectReview} 
+        onFavoriteToggle={handleFavoriteToggle}
+      />
     </section>
   );
 }

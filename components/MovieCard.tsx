@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { Star, Heart, Calendar, Clock, Film, Tv } from 'lucide-react';
 import type { Review } from '@/lib/types';
@@ -8,16 +9,52 @@ import { getPosterUrl } from '@/lib/tmdb';
 interface MovieCardProps {
   review: Review;
   onSelect?: (review: Review) => void;
+  onFavoriteToggle?: (reviewId: string, isFavorite: boolean) => void;
 }
 
-export default function MovieCard({ review, onSelect }: MovieCardProps) {
+export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieCardProps) {
   const isTV = review.media_type === 'tv';
+  const [isFavorite, setIsFavorite] = useState(review.is_favorite);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   
   // Couleur basée sur la note
   const getRatingColor = (rating: number) => {
     if (rating >= 7) return 'text-green-400 bg-green-500/20';
     if (rating >= 5) return 'text-yellow-400 bg-yellow-500/20';
     return 'text-red-400 bg-red-500/20';
+  };
+
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Empêcher la navigation vers la page de détail
+    e.preventDefault(); // Empêcher tout comportement par défaut
+    
+    if (isTogglingFavorite) return;
+    
+    setIsTogglingFavorite(true);
+    const newFavoriteState = !isFavorite;
+    
+    try {
+      const response = await fetch(`/api/reviews/${review.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          is_favorite: newFavoriteState,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la mise à jour');
+      }
+
+      setIsFavorite(newFavoriteState);
+      onFavoriteToggle?.(review.id, newFavoriteState);
+    } catch (error) {
+      console.error('Erreur lors du toggle favori:', error);
+    } finally {
+      setIsTogglingFavorite(false);
+    }
   };
 
   return (
@@ -49,12 +86,23 @@ export default function MovieCard({ review, onSelect }: MovieCardProps) {
           {isTV ? 'Série' : 'Film'}
         </div>
 
-        {/* Badge favori */}
-        {review.is_favorite && (
-          <div className="absolute top-10 left-2 p-1.5 bg-red-500 rounded-full">
-            <Heart className="w-4 h-4 text-white fill-white" />
-          </div>
-        )}
+        {/* Badge favori - Toujours visible si favori, visible au hover sinon */}
+        <button
+          onClick={handleFavoriteClick}
+          disabled={isTogglingFavorite}
+          className={`absolute top-10 left-2 p-1.5 rounded-full transition-all z-10 ${
+            isFavorite 
+              ? 'bg-red-500 opacity-100' 
+              : 'bg-white/10 opacity-0 group-hover:opacity-100 hover:bg-white/20'
+          }`}
+          title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+        >
+          <Heart 
+            className={`w-4 h-4 transition-all ${
+              isFavorite ? 'text-white fill-white' : 'text-gray-300'
+            }`}
+          />
+        </button>
 
         {/* Badge note globale */}
         <div
