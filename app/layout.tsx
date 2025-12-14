@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: 'Personal Film Rating',
   description: 'Application personnelle de notation de films avec critères détaillés',
   keywords: ['films', 'notation', 'reviews', 'cinéma', 'collection'],
+  icons: {
+    icon: '/icon.png',
+  },
 };
 
 export default function RootLayout({
