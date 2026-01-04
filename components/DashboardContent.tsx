@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X, Film, Tv } from 'lucide-react';
+import { Search, X, Film, Tv, Clapperboard } from 'lucide-react';
 import type { Review, MediaType } from '@/lib/types';
 import MovieGrid from './MovieGrid';
 
 type SortOption = 'recent' | 'top-rated' | 'favorites';
-type MediaFilter = 'all' | 'movie' | 'tv';
+type MediaFilter = 'all' | 'movie' | 'animation' | 'tv';
 
 interface DashboardContentProps {
   initialReviews: Review[];
@@ -20,15 +20,21 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
   const [searchQuery, setSearchQuery] = useState('');
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
 
-  // Compter les films et séries
-  const movieCount = reviews.filter((r) => r.media_type !== 'tv').length;
+  // Helper pour détecter les films d'animation
+  const isAnimation = (r: Review) => r.media_type !== 'tv' && r.genres?.includes('Animation');
+  const isClassicMovie = (r: Review) => r.media_type !== 'tv' && !r.genres?.includes('Animation');
+
+  // Compter les films, animations et séries
+  const classicMovieCount = reviews.filter(isClassicMovie).length;
+  const animationCount = reviews.filter(isAnimation).length;
   const tvCount = reviews.filter((r) => r.media_type === 'tv').length;
 
   // Filtrer par type de média
   const mediaFilteredReviews = mediaFilter === 'all'
     ? reviews
     : reviews.filter((r) => {
-        if (mediaFilter === 'movie') return r.media_type !== 'tv';
+        if (mediaFilter === 'movie') return isClassicMovie(r);
+        if (mediaFilter === 'animation') return isAnimation(r);
         return r.media_type === 'tv';
       });
 
@@ -121,7 +127,18 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
               }`}
             >
               <Film className="w-3.5 h-3.5" />
-              Films ({movieCount})
+              Films ({classicMovieCount})
+            </button>
+            <button
+              onClick={() => setMediaFilter('animation')}
+              className={`px-3 py-1.5 rounded-md transition-colors text-sm flex items-center gap-1.5 ${
+                mediaFilter === 'animation'
+                  ? 'bg-orange-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Clapperboard className="w-3.5 h-3.5" />
+              Animation ({animationCount})
             </button>
             <button
               onClick={() => setMediaFilter('tv')}
