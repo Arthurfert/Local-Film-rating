@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Star, Heart, Calendar, Clock, Film, Tv } from 'lucide-react';
+import { Star, Heart, Calendar, Clock, Film, Tv, Clock3 } from 'lucide-react';
 import type { Review } from '@/lib/types';
 import { getPosterUrl } from '@/lib/tmdb';
+import { formatRelativeTime } from '@/lib/utils';
 
 interface MovieCardProps {
   review: Review;
@@ -139,6 +140,12 @@ export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieC
                 <span className="text-gray-400">Acting</span>
                 <span className="font-semibold">{review.rating_acting.toFixed(1)}</span>
               </div>
+            </div>
+
+            {/* Date de publication */}
+            <div className="flex items-center gap-1.5 text-[10px] text-gray-400 border-t border-white/10 pt-2">
+              <Clock3 className="w-3 h-3" />
+              <span>Posté {formatRelativeTime(review.created_at)}</span>
             </div>
 
             {/* Avis */}

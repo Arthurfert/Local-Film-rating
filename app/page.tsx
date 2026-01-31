@@ -17,11 +17,11 @@ export default async function DashboardPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent">
-              Ma Collection
+              My Film Rating
             </span>
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Recherchez, notez et gardez une trace de tous les films et séries que vous avez vus.
+            Gardez une trace de tous les films et séries que vous avez vus.
           </p>
         </div>
 
