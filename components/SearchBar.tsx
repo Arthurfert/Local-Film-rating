@@ -5,7 +5,11 @@ import { Search, X, Loader2 } from 'lucide-react';
 import type { TMDBMediaItem, SearchMediaResponse, Review, WatchlistItem } from '@/lib/types';
 import SearchResults from './SearchResults';
 
-export default function SearchBar() {
+interface SearchBarProps {
+  onWatchlistChange?: () => void;
+}
+
+export default function SearchBar({ onWatchlistChange }: SearchBarProps = {}) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<TMDBMediaItem[]>([]);
   const [existingReviews, setExistingReviews] = useState<Review[]>([]);
@@ -150,6 +154,7 @@ export default function SearchBar() {
             watchlist={watchlist}
             onSelect={handleSelectMedia}
             onClose={() => setIsOpen(false)}
+            onWatchlistChange={onWatchlistChange}
           />
         )}
 

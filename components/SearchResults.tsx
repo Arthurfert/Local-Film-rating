@@ -12,6 +12,7 @@ interface SearchResultsProps {
   watchlist?: WatchlistItem[];
   onSelect: (media: TMDBMediaItem) => void;
   onClose: () => void;
+  onWatchlistChange?: () => void;
 }
 
 const INITIAL_RESULTS = 8;
@@ -23,6 +24,7 @@ export default function SearchResults({
   watchlist = [],
   onSelect,
   onClose,
+  onWatchlistChange
 }: SearchResultsProps) {
   const [visibleCount, setVisibleCount] = useState(INITIAL_RESULTS);
   const [localWatchlist, setLocalWatchlist] = useState<Set<string>>(
@@ -50,6 +52,9 @@ export default function SearchResults({
           next.add(`${media.media_type || 'movie'}-${media.id}`);
           return next;
         });
+        if (onWatchlistChange) {
+          onWatchlistChange();
+        }
       }
     } catch (err) {
       console.error('Failed to add to watchlist', err);
@@ -108,6 +113,13 @@ export default function SearchResults({
                   {/* Badge "Déjà noté" sur le poster */}
                   {isRated && (
                     <div className="absolute top-0 right-0 bg-green-600 rounded-bl-lg p-1">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                  
+                  {/* Badge "Watchlist" sur le poster */}
+                  {!isRated && localWatchlist.has(reviewKey) && (
+                    <div className="absolute top-0 right-0 bg-blue-600 rounded-bl-lg p-1">
                       <Check className="w-3 h-3 text-white" />
                     </div>
                   )}
@@ -176,6 +188,14 @@ export default function SearchResults({
                         Déjà noté
                       </span>
                     )}
+                    
+                    {/* Indicateur "À voir" */}
+                    {!isRated && localWatchlist.has(reviewKey) && (
+                      <span className="text-blue-400 text-xs font-medium flex items-center gap-1">
+                        <Check className="w-3 h-3" />
+                        Dans la watchlist
+                      </span>
+                    )}
                   </div>
 
                   {/* Overview tronqué */}
@@ -193,28 +213,14 @@ export default function SearchResults({
                     >
                       {isRated ? "Modifier la note" : "Noter"}
                     </button>
-                    
-                    {!isRated && (
+
+                    {!isRated && !localWatchlist.has(reviewKey) && (
                       <button
                         onClick={(e) => handleAddToWatchlist(e, media)}
-                        disabled={localWatchlist.has(reviewKey)}
-                        className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors flex-1 text-center flex items-center justify-center gap-2 ${
-                          localWatchlist.has(reviewKey)
-                            ? 'bg-blue-600/20 text-blue-400 cursor-default border border-blue-500/30'
-                            : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
-                        }`}
+                        className="px-4 py-2 text-sm font-semibold rounded-lg transition-colors flex-1 text-center flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/10"
                       >
-                        {localWatchlist.has(reviewKey) ? (
-                          <>
-                            <Check className="w-4 h-4" />
-                            Dans la watchlist
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="w-4 h-4" />
-                            Ajouter à la watchlist
-                          </>
-                        )}
+                        <Plus className="w-4 h-4" />
+                        Ajouter à la watchlist
                       </button>
                     )}
                   </div>

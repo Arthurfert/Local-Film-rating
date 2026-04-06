@@ -91,7 +91,7 @@ export default function WatchlistPage() {
             </div>
             {/* Barre de recherche */}
             <div className="max-w-2xl mx-auto">
-                <SearchBar />
+                <SearchBar onWatchlistChange={fetchWatchlist} />
             </div>
         </section>
 
