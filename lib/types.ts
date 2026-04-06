@@ -8,6 +8,17 @@
 
 export type MediaType = 'movie' | 'tv';
 
+export interface WatchlistItem {
+  id: string;
+  tmdb_id: number;
+  media_type: MediaType;
+  title: string;
+  poster_path: string | null;
+  release_date: string;
+  added_at: string;
+  genre_ids?: number[];
+}
+
 // ============================================
 // Types TMDB API
 // ============================================

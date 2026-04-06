@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Calendar, Star, ChevronDown, ChevronUp, Check, Film, Tv } from 'lucide-react';
-import type { TMDBMediaItem, Review } from '@/lib/types';
+import { Calendar, Star, ChevronDown, ChevronUp, Check, Film, Tv, Plus } from 'lucide-react';
+import type { TMDBMediaItem, Review, WatchlistItem } from '@/lib/types';
 import { getPosterUrl } from '@/lib/tmdb';
 
 interface SearchResultsProps {
   results: TMDBMediaItem[];
   existingReviews: Review[];
+  watchlist?: WatchlistItem[];
   onSelect: (media: TMDBMediaItem) => void;
   onClose: () => void;
 }
@@ -19,15 +20,46 @@ const LOAD_MORE_COUNT = 8;
 export default function SearchResults({
   results,
   existingReviews,
+  watchlist = [],
   onSelect,
   onClose,
 }: SearchResultsProps) {
   const [visibleCount, setVisibleCount] = useState(INITIAL_RESULTS);
+  const [localWatchlist, setLocalWatchlist] = useState<Set<string>>(
+    new Set(watchlist.map(item => `${item.media_type}-${item.tmdb_id}`))
+  );
+  
+  const handleAddToWatchlist = async (e: React.MouseEvent, media: TMDBMediaItem) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch('/api/watchlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tmdb_id: media.id,
+          media_type: media.media_type || 'movie',
+          title: media.title,
+          poster_path: media.poster_path,
+          release_date: media.release_date,
+          genre_ids: media.genre_ids || []
+        })
+      });
+      if (res.ok) {
+        setLocalWatchlist(prev => {
+          const next = new Set(prev);
+          next.add(`${media.media_type || 'movie'}-${media.id}`);
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error('Failed to add to watchlist', err);
+    }
+  };
 
   // Créer un map pour trouver rapidement si un média est déjà noté
   // La clé combine tmdb_id et media_type pour distinguer un film d'une série avec le même ID
   const reviewsByKey = new Map(
-    existingReviews.map((r) => [`${r.media_type || 'movie'}-${r.tmdb_id}`, r])
+    existingReviews.map((r) => [`${r.media_type || 'movie'}-${r.tmdb_id}`, r])  
   );
 
   const showMore = () => {
@@ -52,10 +84,9 @@ export default function SearchResults({
           
           return (
             <li key={`${media.media_type}-${media.id}`}>
-              <button
-                onClick={() => onSelect(media)}
-                className={`w-full p-3 flex gap-4 hover:bg-white/5 transition-colors text-left ${
-                  isRated ? 'bg-green-900/10' : ''
+              <div
+                className={`w-full p-4 flex gap-4 transition-colors text-left ${
+                  isRated ? 'bg-green-900/10' : 'hover:bg-white/5'
                 }`}
               >
                 {/* Poster */}
@@ -103,15 +134,17 @@ export default function SearchResults({
                       </h4>
                     </div>
                     
-                    {/* Badge avec la note si déjà noté */}
-                    {isRated && existingReview && (
-                      <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-green-600/90 rounded-lg shadow-lg">
-                        <Star className="w-3 h-3 text-yellow-300 fill-yellow-300" />
-                        <span className="text-xs font-bold text-white">
-                          {existingReview.rating_global.toFixed(1)}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {/* Badge avec la note si déjà noté */}
+                        {isRated && existingReview && (
+                          <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-green-600/90 rounded-lg shadow-lg">
+                            <Star className="w-3 h-3 text-yellow-300 fill-yellow-300" />
+                            <span className="text-xs font-bold text-white">
+                              {existingReview.rating_global.toFixed(1)}
+                            </span>
+                          </div>
+                        )}
+                    </div>
                   </div>
                   
                   {media.original_title !== media.title && (
@@ -151,8 +184,42 @@ export default function SearchResults({
                       {media.overview}
                     </p>
                   )}
+
+                  {/* Actions (Noter / À voir) */}
+                  <div className="mt-4 flex items-center gap-3">
+                    <button
+                      onClick={() => onSelect(media)}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-lg transition-colors flex-1 text-center"
+                    >
+                      {isRated ? "Modifier la note" : "Noter"}
+                    </button>
+                    
+                    {!isRated && (
+                      <button
+                        onClick={(e) => handleAddToWatchlist(e, media)}
+                        disabled={localWatchlist.has(reviewKey)}
+                        className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors flex-1 text-center flex items-center justify-center gap-2 ${
+                          localWatchlist.has(reviewKey)
+                            ? 'bg-blue-600/20 text-blue-400 cursor-default border border-blue-500/30'
+                            : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
+                        }`}
+                      >
+                        {localWatchlist.has(reviewKey) ? (
+                          <>
+                            <Check className="w-4 h-4" />
+                            Dans la watchlist
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4" />
+                            Ajouter à la watchlist
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </button>
+              </div>
             </li>
           );
         })}
@@ -184,3 +251,6 @@ export default function SearchResults({
     </div>
   );
 }
+
+//
+

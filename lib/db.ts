@@ -6,15 +6,20 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import type { Review, ReviewFormData, UserStats } from './types';
+import type { Review, ReviewFormData, UserStats, WatchlistItem, MediaType } from './types';
 
 // Chemin vers le fichier de données
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'reviews.json');
+const WATCHLIST_FILE = path.join(DATA_DIR, 'watchlist.json');
 
 // Structure de la base de données
 interface Database {
   reviews: Review[];
+}
+
+interface WatchlistDatabase {
+  items: WatchlistItem[];
 }
 
 // ============================================
@@ -44,6 +49,22 @@ async function readDatabase(): Promise<Database> {
 async function writeDatabase(db: Database): Promise<void> {
   await ensureDataDir();
   await fs.writeFile(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
+}
+
+async function readWatchlist(): Promise<WatchlistDatabase> {
+  await ensureDataDir();
+  
+  try {
+    const data = await fs.readFile(WATCHLIST_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return { items: [] };
+  }
+}
+
+async function writeWatchlist(db: WatchlistDatabase): Promise<void> {
+  await ensureDataDir();
+  await fs.writeFile(WATCHLIST_FILE, JSON.stringify(db, null, 2), 'utf-8');
 }
 
 // ============================================
@@ -251,3 +272,64 @@ export async function getMonthlyReviews(): Promise<Review[]> {
     (r) => new Date(r.created_at) >= startOfMonth
   );
 }
+
+
+// ============================================
+// Fonctions CRUD pour la Watchlist
+// ============================================
+
+export async function getWatchlist(): Promise<WatchlistItem[]> {
+  const db = await readWatchlist();
+  return db.items.sort(
+    (a, b) => new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
+  );
+}
+
+export async function addToWatchlist(itemData: Omit<WatchlistItem, "id" | "added_at">): Promise<WatchlistItem> {
+  const db = await readWatchlist();
+  
+  const existing = db.items.find(
+    (item) => item.tmdb_id === itemData.tmdb_id && item.media_type === itemData.media_type
+  );
+  if (existing) {
+    throw new Error(itemData.media_type === "tv" ? "Cette série est déjà dans la liste" : "Ce film est déjà dans la liste");
+  }
+
+  const newItem: WatchlistItem = {
+    ...itemData,
+    id: uuidv4(),
+    added_at: new Date().toISOString()
+  };
+
+  db.items.push(newItem);
+  await writeWatchlist(db);
+  return newItem;
+}
+
+export async function removeFromWatchlist(id: string): Promise<void> {
+  const db = await readWatchlist();
+  const index = db.items.findIndex(item => item.id === id);
+  if (index !== -1) {
+    db.items.splice(index, 1);
+    await writeWatchlist(db);
+  }
+}
+
+export async function isInWatchlist(tmdbId: number, mediaType: MediaType): Promise<boolean> {
+  const db = await readWatchlist();
+  return db.items.some(item => item.tmdb_id === tmdbId && item.media_type === mediaType);
+}
+
+
+export async function removeFromWatchlistByTmdbId(tmdbId: number, mediaType: MediaType): Promise<void> {
+  const db = await readWatchlist();
+  const index = db.items.findIndex(item => item.tmdb_id === tmdbId && item.media_type === mediaType);
+  if (index !== -1) {
+    db.items.splice(index, 1);
+    await writeWatchlist(db);
+  }
+}
+
+
+// To get types correct
+

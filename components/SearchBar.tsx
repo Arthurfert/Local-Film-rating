@@ -2,31 +2,40 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
-import type { TMDBMediaItem, SearchMediaResponse, Review } from '@/lib/types';
+import type { TMDBMediaItem, SearchMediaResponse, Review, WatchlistItem } from '@/lib/types';
 import SearchResults from './SearchResults';
 
 export default function SearchBar() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<TMDBMediaItem[]>([]);
   const [existingReviews, setExistingReviews] = useState<Review[]>([]);
+  const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Charger les reviews existantes au montage
+  // Charger les reviews existantes et la watchlist au montage
   useEffect(() => {
-    const fetchReviews = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/reviews');
-        if (response.ok) {
-          const data = await response.json();
+        const [reviewsRes, watchlistRes] = await Promise.all([
+          fetch('/api/reviews'),
+          fetch('/api/watchlist')
+        ]);
+        
+        if (reviewsRes.ok) {
+          const data = await reviewsRes.json();
           setExistingReviews(data.reviews || []);
         }
+        if (watchlistRes.ok) {
+          const data = await watchlistRes.json();
+          setWatchlist(data || []);
+        }
       } catch (err) {
-        console.error('Erreur lors du chargement des reviews:', err);
+        console.error('Erreur lors du chargement des données:', err);
       }
     };
-    fetchReviews();
+    fetchData();
   }, []);
 
   // Debounced search (films + séries)
@@ -138,6 +147,7 @@ export default function SearchBar() {
           <SearchResults
             results={results}
             existingReviews={existingReviews}
+            watchlist={watchlist}
             onSelect={handleSelectMedia}
             onClose={() => setIsOpen(false)}
           />
