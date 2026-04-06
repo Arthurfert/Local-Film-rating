@@ -148,6 +148,9 @@ export async function createReview(reviewData: ReviewFormData): Promise<Review> 
 
   db.reviews.push(newReview);
   await writeDatabase(db);
+  
+  // Si le film/la série est dans la watchlist, le retirer automatiquement
+  await removeFromWatchlistByTmdbId(reviewData.tmdb_id, reviewData.media_type);
 
   return newReview;
 }
