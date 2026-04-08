@@ -17,6 +17,9 @@ export interface WatchlistItem {
   release_date: string;
   added_at: string;
   genre_ids?: number[];
+  runtime?: number | null;
+  number_of_seasons?: number | null;
+  number_of_episodes?: number | null;
 }
 
 // ============================================

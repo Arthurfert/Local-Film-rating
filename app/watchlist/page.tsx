@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Film, Tv, Trash2, Search, X, Clapperboard } from 'lucide-react';
+import { Film, Tv, Trash2, Search, X, Clapperboard, Calendar, Clock } from 'lucide-react';
 import type { WatchlistItem } from '@/lib/types';
 import { getPosterUrl } from '@/lib/tmdb';
 import SearchBar from '@/components/SearchBar';
@@ -221,10 +221,28 @@ export default function WatchlistPage() {
                 </div>
               </div>
               <div className="p-3">
-                <h3 className="font-bold text-sm truncate">{item.title}</h3>
-                <p className="text-xs text-gray-500">
-                  Ajouté le {new Date(item.added_at).toLocaleDateString('fr-FR')}
-                </p>
+                <h3 className="font-bold text-sm truncate" title={item.title}>{item.title}</h3>
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                  {item.release_date && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(item.release_date).getFullYear()}
+                    </span>
+                  )}
+                  {item.media_type === 'tv' && item.number_of_seasons ? (
+                    <span className="flex items-center gap-1">
+                      <Tv className="w-3 h-3" />
+                      {item.number_of_seasons}S • {item.number_of_episodes}E
+                    </span>
+                  ) : item.runtime ? (
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {Math.floor(item.runtime / 60)}h{item.runtime % 60 ? (item.runtime % 60).toString().padStart(2, '0') + 'm' : ''}
+                    </span>
+                  ) : (
+                    <span className="truncate">Ajouté le {new Date(item.added_at).toLocaleDateString('fr-FR')}</span>
+                  )}
+                </div>
               </div>
             </Link>
           ))}
