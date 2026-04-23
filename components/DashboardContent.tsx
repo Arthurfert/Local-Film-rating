@@ -57,7 +57,7 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
         return b.rating_global - a.rating_global;
       case 'recent':
       default:
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return new Date(b.watched_date || b.created_at).getTime() - new Date(a.watched_date || a.created_at).getTime();
     }
   });
 
