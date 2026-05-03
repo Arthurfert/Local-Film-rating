@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getWatchlist, addToWatchlist } from '@/lib/db';
 import type { WatchlistItem } from '@/lib/types';
-import { getMovieDetails, getTVShowDetails } from '@/lib/tmdb';
+import { getMovieDetails, getTVShowDetails } from '@/lib/tmdb.server';
 
 export async function GET() {
   try {

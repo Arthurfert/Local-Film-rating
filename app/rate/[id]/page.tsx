@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, Clock, Star, ArrowLeft, Film } from 'lucide-react';
-import { getMovieDetails, getPosterUrl, getBackdropUrl } from '@/lib/tmdb';
+import { getMovieDetails } from '@/lib/tmdb.server';
+import { getPosterUrl, getBackdropUrl } from '@/lib/tmdb';
 import { getReviewByTmdbId } from '@/lib/db';
 import RatingFormClient from './RatingFormClient';
 

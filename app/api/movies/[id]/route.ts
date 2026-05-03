@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
-import { getMovieDetails } from '@/lib/tmdb';
+import { getMovieDetails } from '@/lib/tmdb.server';
 
 export async function GET(
   request: NextRequest,

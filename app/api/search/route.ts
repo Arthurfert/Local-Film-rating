@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
-import { searchMulti } from '@/lib/tmdb';
+import { searchMulti } from '@/lib/tmdb.server';
 
 export async function GET(request: NextRequest) {
   try {

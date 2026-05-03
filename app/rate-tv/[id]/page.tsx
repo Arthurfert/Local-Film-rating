@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, Tv, Star, ArrowLeft } from 'lucide-react';
-import { getTVShowDetails, getPosterUrl, getBackdropUrl } from '@/lib/tmdb';
+import { getTVShowDetails } from '@/lib/tmdb.server';
+import { getPosterUrl, getBackdropUrl } from '@/lib/tmdb';
 import { getReviewByTmdbId } from '@/lib/db';
 import TVRatingFormClient from './TVRatingFormClient';
 
