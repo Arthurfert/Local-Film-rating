@@ -1,6 +1,6 @@
 # Local Film Rating
 
-Personal web application for rating movies and TV shows with a detailed 4-criteria rating system.
+Local website for rating movies and TV shows, and save your watchlist.
 
 ![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
@@ -30,7 +30,7 @@ Personal web application for rating movies and TV shows with a detailed 4-criter
 
 - [Node.js](https://nodejs.org/) 18+ 
 - [PM2](https://pm2.keymetrics.io/) (for service mode)
-- A [TMDB](https://www.themoviedb.org/settings/api) API Key
+- A [TMDB API Key](https://www.themoviedb.org/settings/api)
 
 ### Steps
 
@@ -68,8 +68,8 @@ Personal web application for rating movies and TV shows with a detailed 4-criter
 ```bash
 npm run dev
 ```
-
-The application will be available at http://localhost:3000
+> [!NOTE]
+> The application will be available at http://localhost:3000
 
 ### Production Mode with PM2
 
@@ -163,7 +163,8 @@ Local-Film-rating/
 │   └── StatsCard.tsx               # Statistics card
 ├── lib/                           # Utilities and configurations
 │   ├── db.ts                       # Local JSON database management
-│   ├── tmdb.ts                     # TMDB API client
+│   ├── tmdb.server.ts              # Server-side TMDB API integration
+│   ├── tmdb.ts                     # TMDB API client hooks/types
 │   ├── types.ts                    # TypeScript types & interfaces
 │   └── utils.ts                    # Helper functions
 ├── data/                          # Data storage
@@ -214,6 +215,9 @@ Local-Film-rating/
 ### TV Shows
 - `GET /api/tv/[id]` - Get TV show details
 
+### Global Search
+- `GET /api/search` - Search across movies and TV shows
+
 ### Watchlist
 - `GET /api/watchlist` - Get watchlist
 - `POST /api/watchlist` - Add to watchlist
@@ -221,10 +225,8 @@ Local-Film-rating/
 
 ## License
 
-This project is under an [MIT License](./LICENSE)
+This project is under an [MIT License](./LICENSE).
 
 ---
 
-**Data provided by [TMDB](https://www.themoviedb.org/)**
-
-**Created by Arthur Fert**
+**Images and data provided by [TMDB](https://www.themoviedb.org/)**
