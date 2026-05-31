@@ -35,46 +35,42 @@ export default async function RateTVPage({ params }: RateTVPageProps) {
     : null;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative flex flex-col justify-end pb-12">
       {/* Backdrop */}
-      <div className="relative h-[40vh] md:h-[50vh]">
+      <div className="fixed inset-0 z-0">
         {tvShow.backdrop_path ? (
           <Image
             src={getBackdropUrl(tvShow.backdrop_path)}
             alt={tvShow.name}
             fill
-            className="object-cover"
+            className="object-cover object-top"
             priority
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-dark-200 to-dark-300" />
         )}
         
-        {/* Gradient overlay */}
+        {/* Gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-dark-100 via-dark-100/80 to-transparent" />
-        
-        {/* Back button */}
+        <div className="absolute inset-0 bg-gradient-to-r from-dark-100/80 via-dark-100/40 to-transparent" />
+      </div>
+
+      {/* Header (Back button) */}
+      <div className="fixed top-0 left-0 w-full z-50 p-6 flex justify-between items-start pointer-events-none">
         <a
           href="/"
-          className="absolute top-4 left-4 flex items-center gap-2 px-4 py-2 bg-black/50 backdrop-blur-sm rounded-full text-sm hover:bg-black/70 transition-colors"
+          className="flex items-center gap-2 text-white/70 hover:text-white transition-colors drop-shadow-md pointer-events-auto bg-black/30 hover:bg-black/50 backdrop-blur-md p-3 rounded-full"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Retour
+          <ArrowLeft className="w-6 h-6" />
         </a>
-
-        {/* Badge Série TV */}
-        <div className="absolute top-4 right-4 px-3 py-1.5 bg-purple-600 rounded-full text-sm font-medium flex items-center gap-1.5">
-          <Tv className="w-4 h-4" />
-          Série TV
-        </div>
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 -mt-32 relative z-10">
-        <div className="grid md:grid-cols-[300px_1fr] gap-8">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-[40vh] md:pt-[50vh]">
+        <div className="flex flex-col md:flex-row gap-8 items-start relative">
           {/* Poster */}
-          <div className="hidden md:block">
-            <div className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-2xl">
+          <div className="hidden md:block w-48 lg:w-64 shrink-0 sticky top-24">
+            <div className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
               {tvShow.poster_path ? (
                 <Image
                   src={getPosterUrl(tvShow.poster_path, 'w500')}
@@ -84,58 +80,51 @@ export default async function RateTVPage({ params }: RateTVPageProps) {
                   priority
                 />
               ) : (
-                <div className="w-full h-full bg-white/5 flex items-center justify-center">
-                  <span className="text-gray-500">No Image</span>
+                <div className="w-full h-full bg-white/10 flex items-center justify-center">
+                  <span className="text-gray-400">No Image</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* TV Show Info + Rating Form */}
-          <div className="space-y-6">
-            {/* Title */}
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold">{tvShow.name}</h1>
-              {tvShow.original_name !== tvShow.name && (
-                <p className="text-lg text-gray-400 mt-1">{tvShow.original_name}</p>
-              )}
-            </div>
+          {/* Info & Form */}
+          <div className="flex-1 space-y-4 max-w-4xl w-full">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg">
+              {tvShow.name}
+            </h1>
 
             {/* Meta info */}
-            <div className="flex flex-wrap items-center gap-4 text-sm">
+            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-white/90 drop-shadow">
+              <span>Série TV</span>
+              
+              {tvShow.vote_average > 0 && (
+                <span className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
+                  {tvShow.vote_average.toFixed(1)}
+                </span>
+              )}
+
               {tvShow.first_air_date && (
-                <span className="flex items-center gap-1 text-gray-400">
-                  <Calendar className="w-4 h-4" />
+                <span>
                   {new Date(tvShow.first_air_date).getFullYear()}
                   {tvShow.last_air_date && tvShow.status !== 'Ended' && ' - En cours'}
                   {tvShow.last_air_date && tvShow.status === 'Ended' && ` - ${new Date(tvShow.last_air_date).getFullYear()}`}
                 </span>
               )}
-              <span className="flex items-center gap-1 text-gray-400">
-                <Tv className="w-4 h-4" />
+
+              <span className="text-white/80">
                 {tvShow.number_of_seasons} saison{tvShow.number_of_seasons > 1 ? 's' : ''} • {tvShow.number_of_episodes} épisodes
               </span>
-              {avgEpisodeRuntime && (
-                <span className="text-gray-400">
-                  ~{avgEpisodeRuntime}min/épisode
-                </span>
-              )}
-              {tvShow.vote_average > 0 && (
-                <span className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 rounded-lg text-yellow-400">
-                  <Star className="w-4 h-4" fill="currentColor" />
-                  {tvShow.vote_average.toFixed(1)} TMDB
-                </span>
-              )}
             </div>
 
             {/* Networks */}
             {tvShow.networks && tvShow.networks.length > 0 && (
-              <div className="flex flex-wrap gap-2 items-center">
-                <span className="text-gray-500 text-sm">Diffusé sur :</span>
+              <div className="flex flex-wrap gap-2 items-center text-sm">
+                <span className="text-white/70 drop-shadow">Diffusé sur :</span>
                 {tvShow.networks.map((network) => (
                   <span
                     key={network.id}
-                    className="px-3 py-1 bg-purple-500/20 rounded-full text-sm text-purple-300"
+                    className="font-semibold text-white/90 drop-shadow"
                   >
                     {network.name}
                   </span>
@@ -145,11 +134,11 @@ export default async function RateTVPage({ params }: RateTVPageProps) {
 
             {/* Genres */}
             {tvShow.genres.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 pt-1">
                 {tvShow.genres.map((genre) => (
                   <span
                     key={genre.id}
-                    className="px-3 py-1 bg-white/10 rounded-full text-sm text-gray-300"
+                    className="px-3 py-1 bg-red-950/60 border border-red-900/50 rounded-full text-xs font-medium text-red-200"
                   >
                     {genre.name}
                   </span>
@@ -159,26 +148,24 @@ export default async function RateTVPage({ params }: RateTVPageProps) {
 
             {/* Synopsis */}
             {tvShow.overview && (
-              <div>
-                <h2 className="text-lg font-semibold mb-2">Synopsis</h2>
-                <p className="text-gray-400 leading-relaxed">{tvShow.overview}</p>
-              </div>
+              <p className="text-white/80 text-sm md:text-base leading-relaxed drop-shadow max-w-3xl py-2">
+                {tvShow.overview}
+              </p>
             )}
 
-            {/* Separator */}
-            <hr className="border-white/10" />
-
-            {/* Rating Form */}
-            <div>
-              <h2 className="text-xl font-bold mb-4">
+            {/* Form */}
+            <div className="mt-8 pt-4 w-full">
+              <h2 className="text-xl font-bold mb-4 drop-shadow">
                 {existingReview ? 'Modifier ma note' : 'Noter cette série'}
               </h2>
               {existingReview && (
-                <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-xl text-yellow-400 text-sm">
+                <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-xl text-yellow-400 text-sm backdrop-blur-md">
                   Vous avez déjà noté cette série. Vous pouvez modifier votre note ci-dessous.
                 </div>
               )}
-              <TVRatingFormClient tvShow={tvShow} existingReview={existingReview} />
+              <div className="w-full bg-dark-200/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
+                <TVRatingFormClient tvShow={tvShow} existingReview={existingReview} />
+              </div>
             </div>
           </div>
         </div>
