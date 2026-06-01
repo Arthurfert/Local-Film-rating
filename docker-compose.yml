@@ -1,0 +1,13 @@
+services:
+  film-rating:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: film-rating
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env.local
+    restart: unless-stopped
