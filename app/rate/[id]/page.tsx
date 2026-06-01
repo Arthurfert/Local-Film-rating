@@ -7,12 +7,13 @@ import { getReviewByTmdbId } from '@/lib/db';
 import RatingFormClient from './RatingFormClient';
 
 interface RatePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // Page de notation d'un film - Server Component
 export default async function RatePage({ params }: RatePageProps) {
-  const movieId = parseInt(params.id, 10);
+  const resolvedParams = await params;
+  const movieId = parseInt(resolvedParams.id, 10);
 
   if (isNaN(movieId)) {
     notFound();

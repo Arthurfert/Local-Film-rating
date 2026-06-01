@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { getWatchlist, removeFromWatchlist, removeFromWatchlistByTmdbId, isInWatchlist } from '@/lib/db';
 import type { MediaType } from '@/lib/types';
 

@@ -21,11 +21,12 @@ import { getPosterUrl, getBackdropUrl } from '@/lib/tmdb';
 import DeleteReviewButton from './DeleteReviewButton';
 
 interface ReviewPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function ReviewPage({ params }: ReviewPageProps) {
-  const review = await getReviewById(params.id);
+  const resolvedParams = await params;
+  const review = await getReviewById(resolvedParams.id);
 
   if (!review) {
     notFound();

@@ -7,12 +7,13 @@ import { getReviewByTmdbId } from '@/lib/db';
 import TVRatingFormClient from './TVRatingFormClient';
 
 interface RateTVPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // Page de notation d'une série TV - Server Component
 export default async function RateTVPage({ params }: RateTVPageProps) {
-  const tvId = parseInt(params.id, 10);
+  const resolvedParams = await params;
+  const tvId = parseInt(resolvedParams.id, 10);
 
   if (isNaN(tvId)) {
     notFound();

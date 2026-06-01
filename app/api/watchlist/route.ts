@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { getWatchlist, addToWatchlist } from '@/lib/db';
 import type { WatchlistItem } from '@/lib/types';
 import { getMovieDetails, getTVShowDetails } from '@/lib/tmdb.server';
@@ -14,8 +16,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const bodyText = await request.text();
-    const data = JSON.parse(bodyText);
+    const data = await request.json();
 
     if (!data.tmdb_id || !data.media_type || !data.title || !data.release_date) {
       return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
