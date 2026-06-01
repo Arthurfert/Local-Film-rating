@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
+import OptimizedImage from '@/components/OptimizedImage';
 import { Star, Heart, Calendar, Clock, Film, Tv, Clock3 } from 'lucide-react';
 import type { Review } from '@/lib/types';
 import { getPosterUrl } from '@/lib/tmdb';
@@ -66,7 +66,7 @@ export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieC
       {/* Poster */}
       <div className="aspect-[2/3] relative overflow-hidden">
         {review.poster_path ? (
-          <Image
+          <OptimizedImage
             src={getPosterUrl(review.poster_path, 'w342')}
             alt={review.title}
             fill

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
+import OptimizedImage from '@/components/OptimizedImage';
 import { Calendar, Tv, Star, ArrowLeft } from 'lucide-react';
 import { getTVShowDetails } from '@/lib/tmdb.server';
 import { getPosterUrl, getBackdropUrl } from '@/lib/tmdb';
@@ -39,7 +39,7 @@ export default async function RateTVPage({ params }: RateTVPageProps) {
       {/* Backdrop */}
       <div className="fixed inset-0 z-0">
         {tvShow.backdrop_path ? (
-          <Image
+          <OptimizedImage
             src={getBackdropUrl(tvShow.backdrop_path)}
             alt={tvShow.name}
             fill
@@ -72,7 +72,7 @@ export default async function RateTVPage({ params }: RateTVPageProps) {
           <div className="hidden md:block w-48 lg:w-64 shrink-0 sticky top-24">
             <div className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
               {tvShow.poster_path ? (
-                <Image
+                <OptimizedImage
                   src={getPosterUrl(tvShow.poster_path, 'w500')}
                   alt={tvShow.name}
                   fill

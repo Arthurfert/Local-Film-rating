@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
+import OptimizedImage from '@/components/OptimizedImage';
 import { Calendar, Clock, Star, ArrowLeft, Film } from 'lucide-react';
 import { getMovieDetails } from '@/lib/tmdb.server';
 import { getPosterUrl, getBackdropUrl } from '@/lib/tmdb';
@@ -34,7 +34,7 @@ export default async function RatePage({ params }: RatePageProps) {
       {/* Backdrop */}
       <div className="fixed inset-0 z-0">
         {movie.backdrop_path ? (
-          <Image
+          <OptimizedImage
             src={getBackdropUrl(movie.backdrop_path)}
             alt={movie.title}
             fill
@@ -67,7 +67,7 @@ export default async function RatePage({ params }: RatePageProps) {
           <div className="hidden md:block w-48 lg:w-64 shrink-0 sticky top-24">
             <div className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
               {movie.poster_path ? (
-                <Image
+                <OptimizedImage
                   src={getPosterUrl(movie.poster_path, 'w500')}
                   alt={movie.title}
                   fill

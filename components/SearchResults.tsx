@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
+import OptimizedImage from '@/components/OptimizedImage';
 import { Calendar, Star, ChevronDown, ChevronUp, Check, Film, Tv, Plus } from 'lucide-react';
 import type { TMDBMediaItem, Review, WatchlistItem } from '@/lib/types';
 import { getPosterUrl } from '@/lib/tmdb';
@@ -97,7 +97,7 @@ export default function SearchResults({
                 {/* Poster */}
                 <div className="flex-shrink-0 w-16 h-24 relative rounded-lg overflow-hidden bg-white/5">
                   {media.poster_path ? (
-                    <Image
+                    <OptimizedImage
                       src={getPosterUrl(media.poster_path, 'w92')}
                       alt={media.title}
                       fill

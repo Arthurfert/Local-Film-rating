@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import OptimizedImage from '@/components/OptimizedImage';
 import Link from 'next/link';
 import { Film, Tv, Trash2, Search, X, Clapperboard, Calendar, Clock } from 'lucide-react';
 import type { WatchlistItem } from '@/lib/types';
@@ -188,7 +188,7 @@ export default function WatchlistPage() {
             >
               <div className="aspect-[2/3] relative overflow-hidden bg-white/5">
                 {item.poster_path ? (
-                  <Image
+                  <OptimizedImage
                     src={getPosterUrl(item.poster_path, 'w342')}
                     alt={item.title}
                     fill

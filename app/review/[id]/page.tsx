@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
+import OptimizedImage from '@/components/OptimizedImage';
 import Link from 'next/link';
 import {
   Calendar,
@@ -51,7 +51,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
       {/* Backdrop */}
       <div className="fixed inset-0 z-0">
         {review.backdrop_path ? (
-          <Image
+          <OptimizedImage
             src={getBackdropUrl(review.backdrop_path)}
             alt={review.title}
             fill
@@ -96,7 +96,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
           <div className="hidden md:block w-48 lg:w-64 shrink-0 sticky top-24">
             <div className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
               {review.poster_path ? (
-                <Image
+                <OptimizedImage
                   src={getPosterUrl(review.poster_path, 'w500')}
                   alt={review.title}
                   fill
