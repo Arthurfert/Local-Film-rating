@@ -109,7 +109,6 @@ chmod +x update-container.sh
 ./update-container.sh
 ```
 You can automate this by setting up a cron job (Linux/macOS) or using Windows Task Scheduler to run it periodically (e.g. weekly).
-```
 
 ## Project Structure
 
