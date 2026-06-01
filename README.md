@@ -28,8 +28,8 @@ Local website for rating movies and TV shows, and save your watchlist.
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+ 
-- [PM2](https://pm2.keymetrics.io/) (for service mode)
+- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (Recommended for production)
+- [Node.js](https://nodejs.org/) 18+ (For development mode)
 - A [TMDB API Key](https://www.themoviedb.org/settings/api)
 
 ### Steps
@@ -71,47 +71,44 @@ npm run dev
 > [!NOTE]
 > The application will be available at http://localhost:3000
 
-### Production Mode with PM2
+### Production Mode with Docker (Recommended)
 
-PM2 allows you to run the application in the background, even after closing the terminal.
+Docker enhances system isolation and packages all dependencies together securely. 
 
-#### Install PM2
+#### Setup & Start
 
-```bash
-npm install -g pm2
-npm install -g pm2-windows-startup  # Windows only
-```
+1. Start the container in detached (background) mode:
+   ```bash
+   npm run docker:up
+   ```
+   *(This runs `docker compose up -d` under the hood).*
+
+2. View real-time logs:
+   ```bash
+   npm run docker:logs
+   ```
 
 #### NPM Commands
 
 | Command  | Description |
 |----------|-------------|
-| `npm run pm2:start` | Start the application in the background |
-| `npm run pm2:stop` | Stop the application |
-| `npm run pm2:restart` | Restart the application |
-| `npm run pm2:logs` | View logs in real-time |
-| `npm run pm2:status` | View application status |
+| `npm run docker:build` | Build the application Docker image |
+| `npm run docker:up` | Start the container in the background |
+| `npm run docker:down` | Stop and remove the container |
+| `npm run docker:restart` | Restart the container |
+| `npm run docker:logs` | View container logs in real-time |
 
-#### Direct PM2 Commands
+#### Data & Config persistence
+- **Environment variables**: Automatically loaded from `.env.local` at runtime.
+- **Database**: All movie ratings and watchlists are stored in `./data` on the host, which is mounted into the container as a persistent volume. You will not lose your data if the container is rebuilt or restarted.
 
+#### Automated Security Updates
+We provide a helper script `./update-container.sh` that pulls the latest Node base image, upgrades Alpine OS packages (`apk upgrade`), rebuilds the container without cache to patch any vulnerabilities, and prunes unused images:
 ```bash
-pm2 status              # List all processes
-pm2 logs film-rating    # View logs
-pm2 restart film-rating # Restart
-pm2 stop film-rating    # Stop
-pm2 delete film-rating  # Delete the process
+chmod +x update-container.sh
+./update-container.sh
 ```
-
-#### Auto-start on Boot (Windows)
-
-```bash
-pm2 save                # Save the process list
-pm2-startup install     # Enable auto-start
-```
-
-To disable :
-```bash
-pm2-startup uninstall
+You can automate this by setting up a cron job (Linux/macOS) or using Windows Task Scheduler to run it periodically (e.g. weekly).
 ```
 
 ## Project Structure
@@ -171,7 +168,9 @@ Local-Film-rating/
 │   ├── reviews.json                # Reviews database
 │   └── watchlist.json              # Watchlist database
 ├── public/                        # Static assets
-├── ecosystem.config.js             # PM2 configuration
+├── Dockerfile                      # Docker multi-stage build config
+├── docker-compose.yml              # Docker Compose orchestration
+├── update-container.sh             # Auto-update shell script
 ├── next.config.js                  # Next.js configuration
 ├── tsconfig.json                   # TypeScript configuration
 ├── tailwind.config.ts              # Tailwind CSS configuration
@@ -195,7 +194,7 @@ Local-Film-rating/
 | Tailwind CSS | Utility-first CSS framework |
 | React | UI library |
 | TMDB API | Movie & TV show database |
-| PM2 | Process management |
+| Docker & Compose | Containerization and process isolation |
 | Lucide React | Icon library |
 
 ## API Endpoints
