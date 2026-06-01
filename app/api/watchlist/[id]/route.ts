@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getWatchlist, removeFromWatchlist, removeFromWatchlistByTmdbId, isInWatchlist } from '@/lib/db';
 import type { MediaType } from '@/lib/types';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, context: any) {
+  const params = await context.params;
   try {
     const tmdbId = parseInt(params.id, 10);
     const mediaType = request.nextUrl.searchParams.get('mediaType') as MediaType;
@@ -21,15 +19,13 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, context: any) {
+  const params = await context.params;
   try {
     const mediaType = request.nextUrl.searchParams.get('mediaType') as MediaType;
     // Si mediaType est fourni et que id ressemble à un nombre, on supprime par id TMDB + mediaType
     if (mediaType && !isNaN(parseInt(params.id, 10))) {
-        await removeFromWatchlistByTmdbId(parseInt(params.id, 10), mediaType);
+      await removeFromWatchlistByTmdbId(parseInt(params.id, 10), mediaType);
     } else {
         // Sinon, c'est l'UUID
         await removeFromWatchlist(params.id);

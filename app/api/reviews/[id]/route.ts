@@ -8,10 +8,8 @@ export const dynamic = 'force-dynamic';
 import { getReviewById, updateReview, deleteReview } from '@/lib/db';
 
 // GET - Récupérer une review par ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, context: any) {
+  const params = await context.params;
   try {
     const review = await getReviewById(params.id);
 
@@ -33,10 +31,8 @@ export async function GET(
 }
 
 // PATCH - Mettre à jour une review
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, context: any) {
+  const params = await context.params;
   try {
     const body = await request.json();
     const review = await updateReview(params.id, body);
@@ -60,10 +56,8 @@ export async function PATCH(
 }
 
 // DELETE - Supprimer une review
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, context: any) {
+  const params = await context.params;
   try {
     await deleteReview(params.id);
     return NextResponse.json({ success: true });

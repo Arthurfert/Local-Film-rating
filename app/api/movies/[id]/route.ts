@@ -7,10 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { getMovieDetails } from '@/lib/tmdb.server';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, context: any) {
+  const params = await context.params;
   try {
     const movieId = parseInt(params.id, 10);
     const searchParams = request.nextUrl.searchParams;
