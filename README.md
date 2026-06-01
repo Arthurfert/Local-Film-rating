@@ -111,6 +111,8 @@ chmod +x update-container.sh
 You can automate this by setting up a cron job (Linux/macOS) or using Windows Task Scheduler to run it periodically (e.g. weekly).
 
 ## Project Structure
+<details>
+    <summary>Project Structure</summary>
 
 ```
 Local-Film-rating/
@@ -176,6 +178,7 @@ Local-Film-rating/
 ├── postcss.config.js               # PostCSS configuration
 └── package.json                    # Project dependencies
 ```
+</details>
 
 ## Security
 
@@ -197,6 +200,9 @@ Local-Film-rating/
 | Lucide React | Icon library |
 
 ## API Endpoints
+
+<details>
+    <summary>API Endpoints</summary>
 
 ### Reviews
 - `GET /api/reviews` - Get all reviews
@@ -220,6 +226,7 @@ Local-Film-rating/
 - `GET /api/watchlist` - Get watchlist
 - `POST /api/watchlist` - Add to watchlist
 - `DELETE /api/watchlist/[id]` - Remove from watchlist
+</details>
 
 ## License
 
