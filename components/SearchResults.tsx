@@ -79,7 +79,7 @@ export default function SearchResults({
   const remainingCount = results.length - visibleCount;
 
   return (
-    <div className="absolute w-full mt-2 bg-dark-200 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 max-h-[60vh] overflow-y-auto">
+    <div className="absolute w-full mt-2 bg-dark-200 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-40 max-h-[60vh] overflow-y-auto">
       <ul className="divide-y divide-white/5">
         {visibleResults.map((media) => {
           const reviewKey = `${media.media_type}-${media.id}`;

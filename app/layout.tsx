@@ -6,8 +6,8 @@ import NavBar from '@/components/NavBar';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Personal Film Rating',
-  description: 'Application personnelle de notation de films avec critères détaillés',
+  title: 'Local Film Rating',
+  description: 'Notation de films et watchlist en local',
   keywords: ['films', 'notation', 'reviews', 'cinéma', 'collection'],
   icons: {
     icon: '/icon.png',

@@ -77,23 +77,34 @@ export default function WatchlistPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-        <section className="mb-20">
-            <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    Ma Watchlist
-                </span>
-                </h1>
-                <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                Vos films et séries à regarder.
-                </p>
-            </div>
-            {/* Barre de recherche */}
-            <div className="max-w-2xl mx-auto">
-                <SearchBar onWatchlistChange={fetchWatchlist} />
-            </div>
-        </section>
+    <div className="container mx-auto px-4 pt-32 pb-8 relative">
+      {/* Effets de lueur d'ambiance en arrière-plan adaptées au thème Watchlist */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[700px] pointer-events-none -z-10 select-none">
+        <div className="absolute top-[0%] left-[15%] w-[45%] h-[50%] rounded-full bg-blue-500/30 blur-[120px] opacity-100" />
+        <div className="absolute top-[5%] left-[45%] w-[35%] h-[50%] rounded-full bg-indigo-500/30 blur-[120px] opacity-100" />
+        <div className="absolute top-[-5%] right-[10%] w-[30%] h-[45%] rounded-full bg-purple-600/30 blur-[100px] opacity-80" />
+      </div>
+
+      <section className="mb-20 relative">
+        <div className="text-center mb-10 max-w-4xl mx-auto pt-6">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-snug mb-4">
+            <span className="block bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(59,130,246,0.25)] pb-2 py-1">
+              Votre Watchlist
+            </span>
+          </h1>
+          <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+            Vos films et séries à regarder.
+          </p>
+        </div>
+
+        {/* Barre de recherche avec enveloppe en verre et lueur */}
+        <div className="max-w-2xl mx-auto relative mb-8 group z-50">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 rounded-2xl blur-lg opacity-50 group-hover:opacity-85 transition-opacity duration-500 -z-10" />
+          <div className="relative bg-white/[0.02] border border-white/10 backdrop-blur-xl rounded-2xl p-2.5 shadow-2xl transition-all duration-300 hover:border-white/15">
+            <SearchBar onWatchlistChange={fetchWatchlist} />
+          </div>
+        </div>
+      </section>
 
       {watchlist.length > 0 && (
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
