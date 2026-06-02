@@ -36,3 +36,7 @@ next-env.d.ts
 
 # Local database
 /data/*.json
+
+# Skills
+/.agents
+skills-lock.json
