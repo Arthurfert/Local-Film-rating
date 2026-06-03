@@ -90,7 +90,8 @@ export default function SearchResults({
           return (
             <li key={`${media.media_type}-${media.id}`}>
               <div
-                className={`w-full p-4 flex gap-4 transition-colors text-left ${
+                onClick={() => onSelect(media)}
+                className={`w-full p-4 flex gap-4 transition-colors text-left cursor-pointer ${
                   isRated ? 'bg-green-900/10' : 'hover:bg-white/5'
                 }`}
               >
@@ -204,26 +205,6 @@ export default function SearchResults({
                       {media.overview}
                     </p>
                   )}
-
-                  {/* Actions (Noter / À voir) */}
-                  <div className="mt-4 flex items-center gap-3">
-                    <button
-                      onClick={() => onSelect(media)}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-lg transition-colors flex-1 text-center"
-                    >
-                      {isRated ? "Modifier la note" : "Noter"}
-                    </button>
-
-                    {!isRated && !localWatchlist.has(reviewKey) && (
-                      <button
-                        onClick={(e) => handleAddToWatchlist(e, media)}
-                        className="px-4 py-2 text-sm font-semibold rounded-lg transition-colors flex-1 text-center flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/10"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Ajouter à la watchlist
-                      </button>
-                    )}
-                  </div>
                 </div>
               </div>
             </li>

@@ -194,7 +194,7 @@ export default function WatchlistPage() {
           {filteredWatchlist.map((item) => (
             <Link 
               key={item.id} 
-              href={item.media_type === 'tv' ? `/rate-tv/${item.tmdb_id}` : `/rate/${item.tmdb_id}`}
+              href={`/media/${item.media_type || 'movie'}/${item.tmdb_id}`}
               className="group relative bg-dark-200 rounded-xl overflow-hidden border border-white/5 transition-transform duration-300 hover:scale-105"
             >
               <div className="aspect-[2/3] relative overflow-hidden bg-white/5">
@@ -226,10 +226,6 @@ export default function WatchlistPage() {
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
-                
-                <div className="absolute bottom-2 left-2 right-2 bg-blue-500 text-center text-sm font-bold py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                  Noter
-                </div>
               </div>
               <div className="p-3">
                 <h3 className="font-bold text-sm truncate" title={item.title}>{item.title}</h3>

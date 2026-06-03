@@ -80,7 +80,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
         {/* Actions right aligned, must be grouped with pointer-events-auto */}
         <div className="flex gap-2 pointer-events-auto">
           <Link
-            href={isTV ? `/rate-tv/${review.tmdb_id}` : `/rate/${review.tmdb_id}`}
+            href={`/media/${review.media_type || 'movie'}/${review.tmdb_id}`}
             className="flex items-center gap-2 px-4 py-2 bg-blue-500/80 backdrop-blur-md rounded-full text-sm hover:bg-blue-500 transition-colors shadow-lg"
           >
             <Edit className="w-4 h-4" />

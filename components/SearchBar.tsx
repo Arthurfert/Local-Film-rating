@@ -103,12 +103,8 @@ export default function SearchBar({ onWatchlistChange }: SearchBarProps = {}) {
 
   const handleSelectMedia = (media: TMDBMediaItem) => {
     setIsOpen(false);
-    // Naviguer vers la page de notation appropriée
-    if (media.media_type === 'tv') {
-      window.location.href = `/rate-tv/${media.id}`;
-    } else {
-      window.location.href = `/rate/${media.id}`;
-    }
+    // Naviguer vers la nouvelle page de détails du média
+    window.location.href = `/media/${media.media_type || 'movie'}/${media.id}`;
   };
 
   return (
