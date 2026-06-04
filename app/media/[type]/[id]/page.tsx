@@ -59,20 +59,20 @@ export default async function MediaPage({ params }: MediaPageProps) {
       </div>
 
       {/* Header (Back button) */}
-      <div className="fixed top-0 left-0 w-full z-50 p-6 flex justify-between items-start pointer-events-none">
+      <div className="fixed top-0 left-0 w-full z-50 p-6 lg:p-8 flex justify-between items-start pointer-events-none">
         <a
           href="/"
-          className="flex items-center gap-2 text-white/70 hover:text-white transition-colors drop-shadow-md pointer-events-auto bg-black/30 hover:bg-black/50 backdrop-blur-md p-3 rounded-full"
+          className="flex items-center gap-2 text-white/70 hover:text-white transition-colors drop-shadow-md pointer-events-auto bg-black/30 hover:bg-black/50 backdrop-blur-md p-3 lg:p-4 rounded-full"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-6 h-6 lg:w-8 lg:h-8" />
         </a>
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-[40vh] md:pt-[50vh]">
-        <div className="flex flex-col md:flex-row gap-8 items-start relative">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-10 pt-[40vh] md:pt-[50vh]">
+        <div className="flex flex-col md:flex-row gap-8 lg:gap-12 items-start relative">
           {/* Poster */}
-          <div className="hidden md:block w-48 lg:w-64 shrink-0 sticky top-24">
+          <div className="hidden md:block w-48 lg:w-72 xl:w-80 shrink-0 sticky top-24">
             <div className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
               {media.poster_path ? (
                 <OptimizedImage
@@ -91,18 +91,18 @@ export default async function MediaPage({ params }: MediaPageProps) {
           </div>
 
           {/* Info & Form */}
-          <div className="flex-1 space-y-4 max-w-4xl w-full">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg">
+          <div className="flex-1 space-y-5 lg:space-y-6 max-w-4xl w-full">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white drop-shadow-lg">
               {title}
             </h1>
 
             {/* Meta info */}
-            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-white/90 drop-shadow">
+            <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-sm lg:text-base font-medium text-white/90 drop-shadow">
               <span>{type === 'movie' ? 'Film' : 'Série'}</span>
               
               {media.vote_average > 0 && (
-                <span className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
+                <span className="flex items-center gap-1.5">
+                  <Star className="w-5 h-5 lg:w-6 lg:h-6 text-yellow-500" fill="currentColor" />
                   {media.vote_average.toFixed(1)}
                 </span>
               )}
@@ -116,11 +116,11 @@ export default async function MediaPage({ params }: MediaPageProps) {
 
             {/* Genres */}
             {media.genres && media.genres.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-1">
+              <div className="flex flex-wrap gap-2 lg:gap-3 pt-1">
                 {media.genres.map((genre: any) => (
                   <span
                     key={genre.id}
-                    className="px-3 py-1 bg-red-950/60 border border-red-900/50 rounded-full text-xs font-medium text-red-200"
+                    className="px-3 lg:px-4 py-1.5 lg:py-2 bg-red-950/60 border border-red-900/50 rounded-full text-xs lg:text-sm font-medium text-red-200"
                   >
                     {genre.name}
                   </span>
@@ -130,13 +130,13 @@ export default async function MediaPage({ params }: MediaPageProps) {
 
             {/* Synopsis */}
             {media.overview && (
-              <p className="text-white/80 text-sm md:text-base leading-relaxed drop-shadow max-w-3xl py-2">
+              <p className="text-white/80 text-sm md:text-base lg:text-lg leading-relaxed drop-shadow max-w-3xl py-2">
                 {media.overview}
               </p>
             )}
 
             {/* Actions Client Component */}
-            <div className="mt-8 pt-4 w-full">
+            <div className="mt-8 lg:mt-10 pt-4 w-full">
               <MediaActionsClient 
                 media={media} 
                 mediaType={type as 'movie' | 'tv'} 

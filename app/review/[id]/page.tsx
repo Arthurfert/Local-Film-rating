@@ -69,21 +69,21 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
       </div>
 
       {/* Header (Back button & Actions) */}
-      <div className="fixed top-0 left-0 w-full z-50 p-6 flex justify-between items-start pointer-events-none">
+      <div className="fixed top-0 left-0 w-full z-50 p-6 lg:p-8 flex justify-between items-start pointer-events-none">
         <Link
           href="/"
-          className="flex items-center gap-2 text-white/70 hover:text-white transition-colors drop-shadow-md pointer-events-auto bg-black/30 hover:bg-black/50 backdrop-blur-md p-3 rounded-full"
+          className="flex items-center gap-2 text-white/70 hover:text-white transition-colors drop-shadow-md pointer-events-auto bg-black/30 hover:bg-black/50 backdrop-blur-md p-3 lg:p-4 rounded-full"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-6 h-6 lg:w-8 lg:h-8" />
         </Link>
 
         {/* Actions right aligned, must be grouped with pointer-events-auto */}
-        <div className="flex gap-2 pointer-events-auto">
+        <div className="flex gap-2 lg:gap-3 pointer-events-auto">
           <Link
             href={`/media/${review.media_type || 'movie'}/${review.tmdb_id}`}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500/80 backdrop-blur-md rounded-full text-sm hover:bg-blue-500 transition-colors shadow-lg"
+            className="flex items-center gap-2 px-5 lg:px-6 py-2.5 lg:py-3 bg-blue-500/80 backdrop-blur-md rounded-full text-sm lg:text-base hover:bg-blue-500 transition-colors shadow-lg"
           >
-            <Edit className="w-4 h-4" />
+            <Edit className="w-4 h-4 lg:w-5 lg:h-5" />
             Modifier
           </Link>
           <DeleteReviewButton reviewId={review.id} />
@@ -91,10 +91,10 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-[40vh] md:pt-[50vh]">
-        <div className="flex flex-col md:flex-row gap-8 items-start relative">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-10 pt-[40vh] md:pt-[50vh]">
+        <div className="flex flex-col md:flex-row gap-8 lg:gap-12 items-start relative">
           {/* Poster */}
-          <div className="hidden md:block w-48 lg:w-64 shrink-0 sticky top-24">
+          <div className="hidden md:block w-48 lg:w-72 xl:w-80 shrink-0 sticky top-24">
             <div className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
               {review.poster_path ? (
                 <OptimizedImage
@@ -113,26 +113,26 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
           </div>
 
           {/* Info */}
-          <div className="flex-1 space-y-4 max-w-4xl w-full mt-8 md:mt-0">
+          <div className="flex-1 space-y-5 lg:space-y-6 max-w-4xl w-full mt-8 md:mt-0">
             {/* Title */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white drop-shadow-lg">
                   {review.title}
                 </h1>
                 {review.original_title && review.original_title !== review.title && (
-                  <p className="text-lg text-white/70 mt-1 drop-shadow">{review.original_title}</p>
+                  <p className="text-lg lg:text-xl text-white/70 mt-1 drop-shadow">{review.original_title}</p>
                 )}
               </div>
               {review.is_favorite && (
-                <div className="p-3 bg-red-500/20 backdrop-blur-md border border-red-500/50 rounded-full flex-shrink-0 shadow-lg">
-                  <Heart className="w-6 h-6 text-red-500 fill-red-500" />
+                <div className="p-3 lg:p-4 bg-red-500/20 backdrop-blur-md border border-red-500/50 rounded-full flex-shrink-0 shadow-lg">
+                  <Heart className="w-6 h-6 lg:w-8 lg:h-8 text-red-500 fill-red-500" />
                 </div>
               )}
             </div>
 
             {/* Meta info */}
-            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-white/90 drop-shadow">
+            <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-sm lg:text-base font-medium text-white/90 drop-shadow">
               <span>{isTV ? 'Série TV' : 'Film'}</span>
               
               {review.release_date && (
@@ -163,11 +163,11 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
 
             {/* Genres */}
             {review.genres && review.genres.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-1">
+              <div className="flex flex-wrap gap-2 lg:gap-3 pt-1">
                 {review.genres.map((genre) => (
                   <span
                     key={genre}
-                    className="px-3 py-1 bg-red-950/60 border border-red-900/50 rounded-full text-xs font-medium text-red-200"
+                    className="px-3 lg:px-4 py-1.5 lg:py-2 bg-red-950/60 border border-red-900/50 rounded-full text-xs lg:text-sm font-medium text-red-200"
                   >
                     {genre}
                   </span>
@@ -176,44 +176,44 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             )}
 
             {/* Ratings section */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 lg:gap-8 pt-4">
               {/* Note Globale */}
               <div
-                className={`md:col-span-2 flex flex-col justify-center items-center gap-2 p-6 rounded-2xl backdrop-blur-xl border border-white/10 ${getRatingBgColor(
+                className={`md:col-span-2 flex flex-col justify-center items-center gap-2 lg:gap-3 p-6 lg:p-8 rounded-2xl backdrop-blur-xl border border-white/10 ${getRatingBgColor(
                   review.rating_global
                 )} shadow-2xl`}
               >
-                <p className="text-sm text-white/70 font-medium tracking-wide uppercase">Note Globale</p>
-                <div className="flex items-center gap-3">
+                <p className="text-sm lg:text-base text-white/70 font-medium tracking-wide uppercase">Note Globale</p>
+                <div className="flex items-center gap-3 lg:gap-4">
                   <Star
-                    className={`w-12 h-12 ${getRatingColor(review.rating_global)} drop-shadow-md`}
+                    className={`w-12 h-12 lg:w-16 lg:h-16 ${getRatingColor(review.rating_global)} drop-shadow-md`}
                     fill="currentColor"
                   />
-                  <p className={`text-6xl font-bold ${getRatingColor(review.rating_global)} drop-shadow-md`}>
+                  <p className={`text-6xl lg:text-7xl font-bold ${getRatingColor(review.rating_global)} drop-shadow-md`}>
                     {review.rating_global.toFixed(1)}
                   </p>
                 </div>
               </div>
 
               {/* Ratings détaillés */}
-              <div className="md:col-span-3 grid grid-cols-2 gap-4">
+              <div className="md:col-span-3 grid grid-cols-2 gap-4 lg:gap-5">
                 <RatingCard
-                  icon={<BookOpen className="w-5 h-5" />}
+                  icon={<BookOpen className="w-5 h-5 lg:w-6 lg:h-6" />}
                   label="Scénario"
                   value={review.rating_scenario}
                 />
                 <RatingCard
-                  icon={<Eye className="w-5 h-5" />}
+                  icon={<Eye className="w-5 h-5 lg:w-6 lg:h-6" />}
                   label="Visuel"
                   value={review.rating_visual}
                 />
                 <RatingCard
-                  icon={<Music className="w-5 h-5" />}
+                  icon={<Music className="w-5 h-5 lg:w-6 lg:h-6" />}
                   label="Musique"
                   value={review.rating_music}
                 />
                 <RatingCard
-                  icon={<Users className="w-5 h-5" />}
+                  icon={<Users className="w-5 h-5 lg:w-6 lg:h-6" />}
                   label="Acting"
                   value={review.rating_acting}
                 />
@@ -222,17 +222,17 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
 
             {/* Review text */}
             {review.review_text && (
-              <div className="p-6 md:p-8 bg-dark-200/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl mt-6">
-                <h3 className="font-semibold text-lg text-white mb-4">Mon avis</h3>
-                <p className="text-white/80 whitespace-pre-wrap leading-relaxed">{review.review_text}</p>
+              <div className="p-6 md:p-8 lg:p-10 bg-dark-200/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl mt-6">
+                <h3 className="font-semibold text-lg lg:text-xl text-white mb-4">Mon avis</h3>
+                <p className="text-white/80 text-sm lg:text-base whitespace-pre-wrap leading-relaxed">{review.review_text}</p>
               </div>
             )}
 
             {/* Synopsis */}
             {review.overview && (
               <div className="pt-4">
-                <h3 className="font-semibold text-lg text-white mb-2 drop-shadow">Synopsis</h3>
-                <p className="text-white/80 leading-relaxed drop-shadow max-w-3xl">{review.overview}</p>
+                <h3 className="font-semibold text-lg lg:text-xl text-white mb-2 drop-shadow">Synopsis</h3>
+                <p className="text-white/80 text-sm lg:text-base leading-relaxed drop-shadow max-w-3xl">{review.overview}</p>
               </div>
             )}
           </div>
@@ -259,12 +259,12 @@ function RatingCard({
   };
 
   return (
-    <div className={`p-5 rounded-2xl border backdrop-blur-md shadow-lg flex flex-col justify-center ${getColor(value)}`}>
-      <div className="flex items-center gap-2 mb-2 opacity-80">
+    <div className={`p-5 lg:p-7 rounded-2xl border backdrop-blur-md shadow-lg flex flex-col justify-center ${getColor(value)}`}>
+      <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3 opacity-80">
         {icon}
-        <span className="text-sm font-medium">{label}</span>
+        <span className="text-sm lg:text-base font-medium">{label}</span>
       </div>
-      <p className="text-3xl font-bold drop-shadow-sm">{value.toFixed(1)}</p>
+      <p className="text-3xl lg:text-4xl font-bold drop-shadow-sm">{value.toFixed(1)}</p>
     </div>
   );
 }

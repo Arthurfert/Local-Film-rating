@@ -40,19 +40,19 @@ export default function DeleteReviewButton({ reviewId }: DeleteReviewButtonProps
         <button
           onClick={() => setShowConfirm(false)}
           disabled={isDeleting}
-          className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm hover:bg-white/30 transition-colors"
+          className="px-5 lg:px-6 py-2.5 lg:py-3 bg-white/20 backdrop-blur-sm rounded-full text-sm lg:text-base hover:bg-white/30 transition-colors"
         >
           Annuler
         </button>
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500 backdrop-blur-sm rounded-full text-sm hover:bg-red-600 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-5 lg:px-6 py-2.5 lg:py-3 bg-red-500 backdrop-blur-sm rounded-full text-sm lg:text-base hover:bg-red-600 transition-colors disabled:opacity-50"
         >
           {isDeleting ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-5 h-5" />
           )}
           Confirmer
         </button>
@@ -63,9 +63,9 @@ export default function DeleteReviewButton({ reviewId }: DeleteReviewButtonProps
   return (
     <button
       onClick={() => setShowConfirm(true)}
-      className="flex items-center gap-2 px-4 py-2 bg-red-500/80 backdrop-blur-sm rounded-full text-sm hover:bg-red-500 transition-colors"
+      className="flex items-center gap-2 px-5 lg:px-6 py-2.5 lg:py-3 bg-red-500/80 backdrop-blur-sm rounded-full text-sm lg:text-base hover:bg-red-500 transition-colors"
     >
-      <Trash2 className="w-4 h-4" />
+      <Trash2 className="w-5 h-5" />
       Supprimer
     </button>
   );

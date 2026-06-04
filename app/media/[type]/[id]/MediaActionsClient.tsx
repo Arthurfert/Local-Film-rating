@@ -144,10 +144,10 @@ export default function MediaActionsClient({
       )}
 
       {!showRatingForm && (
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 mb-8">
           <button
             onClick={() => setShowRatingForm(true)}
-            className="px-8 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-colors shadow-lg hover:shadow-red-600/20"
+            className="px-10 lg:px-12 py-3.5 lg:py-4 bg-red-600 hover:bg-red-500 text-white font-bold text-base lg:text-lg rounded-xl transition-colors shadow-lg hover:shadow-red-600/20"
           >
             Noter
           </button>
@@ -155,16 +155,16 @@ export default function MediaActionsClient({
           {!watchlistLoading && !isInWatchlist && (
             <button
               onClick={handleAddToWatchlist}
-              className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-bold border border-white/10 rounded-xl transition-colors flex items-center justify-center gap-2 backdrop-blur-md"
+              className="px-10 lg:px-12 py-3.5 lg:py-4 bg-white/10 hover:bg-white/20 text-white font-bold text-base lg:text-lg border border-white/10 rounded-xl transition-colors flex items-center justify-center gap-2 backdrop-blur-md"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-5 h-5 lg:w-6 lg:h-6" />
               Ajouter à la watchlist
             </button>
           )}
 
           {!watchlistLoading && isInWatchlist && (
-             <div className="px-8 py-3 bg-blue-600/20 text-blue-400 font-bold border border-blue-500/30 rounded-xl flex items-center justify-center gap-2 backdrop-blur-md">
-               <Check className="w-5 h-5" />
+             <div className="px-10 lg:px-12 py-3.5 lg:py-4 bg-blue-600/20 text-blue-400 font-bold text-base lg:text-lg border border-blue-500/30 rounded-xl flex items-center justify-center gap-2 backdrop-blur-md">
+               <Check className="w-5 h-5 lg:w-6 lg:h-6" />
                Dans la watchlist
              </div>
           )}
