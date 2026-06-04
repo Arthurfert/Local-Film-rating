@@ -3,7 +3,7 @@ import { Search, Film, ArrowRight } from 'lucide-react';
 
 export default function SearchPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full px-4 py-8">
       {/* Header */}
       <div className="text-center mb-12">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl mb-4">
@@ -19,7 +19,7 @@ export default function SearchPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="max-w-2xl mx-auto mb-16">
+      <div className="mb-16">
         <SearchBar />
       </div>
 
