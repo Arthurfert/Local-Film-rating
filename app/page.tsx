@@ -13,9 +13,9 @@ export default async function DashboardPage() {
   const stats = await getStats();
 
   return (
-    <div className="container mx-auto px-4 pt-32 pb-8 relative">
+    <div className="w-full px-4 pt-32 pb-8 relative">
       {/* Effets de lueur d'ambiance en arrière-plan */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[700px] pointer-events-none -z-10 select-none">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[700px] pointer-events-none -z-10 select-none">
         <div className="absolute top-[0%] left-[15%] w-[45%] h-[50%] rounded-full bg-red-500/30 blur-[120px] opacity-100" />
         <div className="absolute top-[5%] left-[45%] w-[35%] h-[50%] rounded-full bg-amber-500/30 blur-[120px] opacity-100" />
         <div className="absolute top-[-5%] right-[10%] w-[30%] h-[45%] rounded-full bg-purple-600/30 blur-[100px] opacity-80" />
