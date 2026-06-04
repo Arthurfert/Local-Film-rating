@@ -23,9 +23,9 @@ export default async function DashboardPage() {
 
       {/* Hero Section */}
       <section className="mb-16 relative">
-        <div className="text-center mb-10 max-w-4xl mx-auto pt-6">
+        <div className="text-center mb-10 max-w-6xl mx-auto pt-6">
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-snug mb-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight leading-snug mb-6 lg:mb-8">
             <span className="block text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-300 pb-2">
               Évaluez & Organisez
             </span>
@@ -34,37 +34,37 @@ export default async function DashboardPage() {
             </span>
           </h1>
 
-          <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-gray-400 text-base md:text-lg lg:text-xl xl:text-2xl max-w-3xl mx-auto leading-relaxed">
             Gardez une trace de tous les films et séries que vous avez vus.
           </p>
         </div>
 
         {/* Barre de recherche avec enveloppe en verre et lueur */}
-        <div className="max-w-2xl mx-auto relative mb-8 group z-50">
+        <div className="relative mb-8 group z-50 max-w-3xl mx-auto">
           <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-orange-500/10 to-yellow-500/10 rounded-2xl blur-lg opacity-50 group-hover:opacity-85 transition-opacity duration-500 -z-10" />
-          <div className="relative bg-white/[0.02] border border-white/10 backdrop-blur-xl rounded-2xl p-2.5 shadow-2xl transition-all duration-300 hover:border-white/15">
+          <div className="relative bg-white/[0.02] border border-white/10 backdrop-blur-xl rounded-2xl p-3 lg:p-4 shadow-2xl transition-all duration-300 hover:border-white/15">
             <SearchBar />
           </div>
         </div>
 
         {/* Petit résumé des statistiques en ligne */}
-        <div className="flex items-center justify-center gap-4 flex-wrap text-sm text-gray-400 relative z-0">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-sm transition-all hover:bg-white/[0.04] hover:border-white/10">
-            <Film className="w-4 h-4 text-red-400" />
+        <div className="flex items-center justify-center gap-4 md:gap-6 flex-wrap text-sm md:text-base text-gray-400 relative z-0">
+          <div className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-sm transition-all hover:bg-white/[0.04] hover:border-white/10">
+            <Film className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
             <span>
               <strong className="text-white font-semibold">{stats.total_reviews}</strong> critiques
             </span>
           </div>
           
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-sm transition-all hover:bg-white/[0.04] hover:border-white/10">
-            <Star className="w-4 h-4 text-amber-400 fill-amber-400/20" />
+          <div className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-sm transition-all hover:bg-white/[0.04] hover:border-white/10">
+            <Star className="w-4 h-4 md:w-5 md:h-5 text-amber-400 fill-amber-400/20" />
             <span>
               Note moy. <strong className="text-white font-semibold">{stats.total_reviews > 0 ? stats.avg_rating.toFixed(1) : '-'}</strong>/10
             </span>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-sm transition-all hover:bg-white/[0.04] hover:border-white/10">
-            <Heart className="w-4 h-4 text-purple-400 fill-purple-400/20" />
+          <div className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-sm transition-all hover:bg-white/[0.04] hover:border-white/10">
+            <Heart className="w-4 h-4 md:w-5 md:h-5 text-purple-400 fill-purple-400/20" />
             <span>
               <strong className="text-white font-semibold">{stats.favorites_count}</strong> favoris
             </span>
