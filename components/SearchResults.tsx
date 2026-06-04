@@ -79,7 +79,7 @@ export default function SearchResults({
   const remainingCount = results.length - visibleCount;
 
   return (
-    <div className="absolute w-full mt-2 bg-dark-200 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-40 max-h-[60vh] overflow-y-auto">
+    <div className="absolute w-full mt-2 bg-dark-200 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-40 max-h-[70vh] overflow-y-auto">
       <ul className="divide-y divide-white/5">
         {visibleResults.map((media) => {
           const reviewKey = `${media.media_type}-${media.id}`;
@@ -91,12 +91,12 @@ export default function SearchResults({
             <li key={`${media.media_type}-${media.id}`}>
               <div
                 onClick={() => onSelect(media)}
-                className={`w-full p-4 flex gap-4 transition-colors text-left cursor-pointer ${
+                className={`w-full p-4 lg:p-6 flex gap-4 lg:gap-6 transition-colors text-left cursor-pointer ${
                   isRated ? 'bg-green-900/10' : 'hover:bg-white/5'
                 }`}
               >
                 {/* Poster */}
-                <div className="flex-shrink-0 w-16 h-24 relative rounded-lg overflow-hidden bg-white/5">
+                <div className="flex-shrink-0 w-20 h-28 lg:w-24 lg:h-36 relative rounded-lg overflow-hidden bg-white/5">
                   {media.poster_path ? (
                     <OptimizedImage
                       src={getPosterUrl(media.poster_path, 'w92')}
@@ -138,11 +138,11 @@ export default function SearchResults({
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       {isTV ? (
-                        <Tv className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                        <Tv className="w-5 h-5 lg:w-6 lg:h-6 text-purple-400 flex-shrink-0" />
                       ) : (
-                        <Film className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                        <Film className="w-5 h-5 lg:w-6 lg:h-6 text-blue-400 flex-shrink-0" />
                       )}
-                      <h4 className="font-semibold text-white truncate">
+                      <h4 className="font-semibold text-white truncate text-base lg:text-lg">
                         {media.title}
                       </h4>
                     </div>
@@ -150,9 +150,9 @@ export default function SearchResults({
                     <div className="flex items-center gap-2">
                         {/* Badge avec la note si déjà noté */}
                         {isRated && existingReview && (
-                          <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-green-600/90 rounded-lg shadow-lg">
-                            <Star className="w-3 h-3 text-yellow-300 fill-yellow-300" />
-                            <span className="text-xs font-bold text-white">
+                          <div className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 lg:px-4 lg:py-2 bg-green-600/90 rounded-lg shadow-lg">
+                            <Star className="w-4 h-4 lg:w-5 lg:h-5 text-yellow-300 fill-yellow-300" />
+                            <span className="text-sm lg:text-base font-bold text-white">
                               {existingReview.rating_global.toFixed(1)}
                             </span>
                           </div>
@@ -161,24 +161,24 @@ export default function SearchResults({
                   </div>
                   
                   {media.original_title !== media.title && (
-                    <p className="text-sm text-gray-400 truncate">
+                    <p className="text-sm lg:text-base text-gray-400 truncate">
                       {media.original_title}
                     </p>
                   )}
                   
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-4 mt-2 text-sm lg:text-base text-gray-400">
                     {/* Année de sortie */}
                     {media.release_date && (
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-4 h-4 lg:w-5 lg:h-5" />
                         {new Date(media.release_date).getFullYear()}
                       </span>
                     )}
                     
                     {/* Note TMDB */}
                     {media.vote_average > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-500" />
+                      <span className="flex items-center gap-1.5">
+                        <Star className="w-4 h-4 lg:w-5 lg:h-5 text-yellow-500" />
                         {media.vote_average.toFixed(1)}
                       </span>
                     )}
@@ -201,7 +201,7 @@ export default function SearchResults({
 
                   {/* Overview tronqué */}
                   {media.overview && (
-                    <p className="mt-2 text-xs text-gray-500 line-clamp-2">
+                    <p className="mt-2 text-sm lg:text-base text-gray-500 line-clamp-2">
                       {media.overview}
                     </p>
                   )}
@@ -218,7 +218,7 @@ export default function SearchResults({
           {remainingCount > 0 ? (
             <button
               onClick={showMore}
-              className="w-full p-2 text-sm text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full p-3 lg:p-4 text-sm lg:text-base text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               <ChevronDown className="w-4 h-4" />
               Voir {Math.min(remainingCount, LOAD_MORE_COUNT)} autres résultats
@@ -227,7 +227,7 @@ export default function SearchResults({
           ) : (
             <button
               onClick={showLess}
-              className="w-full p-2 text-sm text-gray-400 hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full p-3 lg:p-4 text-sm lg:text-base text-gray-400 hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               <ChevronUp className="w-4 h-4" />
               Réduire la liste

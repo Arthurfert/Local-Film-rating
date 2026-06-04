@@ -112,27 +112,27 @@ export default function SearchBar({ onWatchlistChange }: SearchBarProps = {}) {
       <div className="relative">
         {/* Input de recherche */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => results.length > 0 && setIsOpen(true)}
             placeholder="Rechercher un film ou une série..."
-            className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl 
-                     text-white placeholder-gray-400 focus:outline-none focus:ring-2 
+            className="w-full pl-14 pr-14 py-5 lg:py-6 bg-white/5 border border-white/10 rounded-xl 
+                     text-white text-base lg:text-lg placeholder-gray-400 focus:outline-none focus:ring-2 
                      focus:ring-red-500/50 focus:border-red-500/50 transition-all"
           />
           
           {/* Icône de chargement ou bouton clear */}
           {isLoading ? (
-            <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 animate-spin" />
+            <Loader2 className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400 animate-spin" />
           ) : query && (
             <button
               onClick={clearSearch}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-colors"
+              className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 hover:bg-white/10 rounded-full transition-colors"
             >
-              <X className="w-4 h-4 text-gray-400" />
+              <X className="w-5 h-5 text-gray-400" />
             </button>
           )}
         </div>

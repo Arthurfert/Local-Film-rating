@@ -14,14 +14,14 @@ export default function NavBar() {
   }
 
   return (
-    <div className="fixed top-4 left-0 right-0 flex justify-center z-50 pointer-events-auto">
-      <nav className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-6 py-3 flex items-center shadow-2xl gap-8">
-        <div className="flex gap-6 items-center">
-          <Link href="/" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+    <div className="fixed top-6 left-0 right-0 flex justify-center z-50 pointer-events-auto">
+      <nav className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-8 py-4 flex items-center shadow-2xl gap-10">
+        <div className="flex gap-8 items-center">
+          <Link href="/" className="text-base lg:text-lg font-medium text-gray-300 hover:text-white transition-colors">
             Mes Notes
           </Link>
-          <div className="h-4 w-px bg-white/20"></div>
-          <Link href="/watchlist" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+          <div className="h-5 w-px bg-white/20"></div>
+          <Link href="/watchlist" className="text-base lg:text-lg font-medium text-gray-300 hover:text-white transition-colors">
             Watchlist
           </Link>
         </div>

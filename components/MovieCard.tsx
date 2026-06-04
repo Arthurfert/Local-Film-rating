@@ -80,10 +80,10 @@ export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieC
         )}
 
         {/* Badge Film/Série */}
-        <div className={`absolute top-2 left-2 px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 ${
+        <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-lg text-xs lg:text-sm font-medium flex items-center gap-1.5 ${
           isTV ? 'bg-purple-600' : 'bg-blue-600'
         }`}>
-          {isTV ? <Tv className="w-3 h-3" /> : <Film className="w-3 h-3" />}
+          {isTV ? <Tv className="w-3.5 h-3.5 lg:w-4 lg:h-4" /> : <Film className="w-3.5 h-3.5 lg:w-4 lg:h-4" />}
           {isTV ? 'Série' : 'Film'}
         </div>
 
@@ -91,7 +91,7 @@ export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieC
         <button
           onClick={handleFavoriteClick}
           disabled={isTogglingFavorite}
-          className={`absolute top-10 left-2 p-1.5 rounded-full transition-all z-10 ${
+          className={`absolute top-12 lg:top-14 left-3 p-2 rounded-full transition-all z-10 ${
             isFavorite 
               ? 'bg-red-500 opacity-100' 
               : 'bg-white/10 opacity-0 group-hover:opacity-100 hover:bg-white/20'
@@ -99,7 +99,7 @@ export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieC
           title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
         >
           <Heart 
-            className={`w-4 h-4 transition-all ${
+            className={`w-5 h-5 transition-all ${
               isFavorite ? 'text-white fill-white' : 'text-gray-300'
             }`}
           />
@@ -107,7 +107,7 @@ export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieC
 
         {/* Badge note globale */}
         <div
-          className={`absolute top-2 right-2 px-2.5 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 shadow-lg backdrop-blur-sm border ${
+          className={`absolute top-3 right-3 px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg font-bold text-sm lg:text-base flex items-center gap-1.5 shadow-lg backdrop-blur-sm border ${
             review.rating_global >= 7
               ? 'bg-green-600/90 text-white border-green-400/50'
               : review.rating_global >= 5
@@ -115,15 +115,15 @@ export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieC
               : 'bg-red-600/90 text-white border-red-400/50'
           }`}
         >
-          <Star className="w-3.5 h-3.5" fill="currentColor" />
+          <Star className="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" />
           {review.rating_global.toFixed(1)}
         </div>
 
         {/* Overlay au hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="absolute bottom-0 left-0 right-0 p-4 space-y-3">
+          <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5 space-y-3">
             {/* Notes détaillées */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-2 gap-2 text-xs lg:text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-400">Scénario</span>
                 <span className="font-semibold">{review.rating_scenario.toFixed(1)}</span>
@@ -143,14 +143,14 @@ export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieC
             </div>
 
             {/* Date de publication */}
-            <div className="flex items-center gap-1.5 text-[10px] text-gray-400 border-t border-white/10 pt-2">
-              <Clock3 className="w-3 h-3" />
+            <div className="flex items-center gap-1.5 text-xs text-gray-400 border-t border-white/10 pt-2">
+              <Clock3 className="w-3.5 h-3.5" />
               <span>Posté {formatRelativeTime(review.created_at)}</span>
             </div>
 
             {/* Avis */}
             {review.review_text && (
-              <p className="text-xs text-gray-300 line-clamp-2">
+              <p className="text-sm text-gray-300 line-clamp-2">
                 {review.review_text}
               </p>
             )}
@@ -159,27 +159,27 @@ export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieC
       </div>
 
       {/* Infos */}
-      <div className="p-3">
-        <h3 className="font-semibold truncate" title={review.title}>
+      <div className="p-3 lg:p-4">
+        <h3 className="font-semibold text-sm lg:text-base truncate" title={review.title}>
           {review.title}
         </h3>
         
-        <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+        <div className="flex items-center gap-3 mt-2 text-xs lg:text-sm text-gray-400">
           {review.release_date && (
             <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
+              <Calendar className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
               {new Date(review.release_date).getFullYear()}
             </span>
           )}
           {/* Durée pour les films, saisons/épisodes pour les séries */}
           {isTV && review.number_of_seasons ? (
             <span className="flex items-center gap-1">
-              <Tv className="w-3 h-3" />
+              <Tv className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
               {review.number_of_seasons}S • {review.number_of_episodes}E
             </span>
           ) : review.runtime ? (
             <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
+              <Clock className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
               {Math.floor(review.runtime / 60)}h{review.runtime % 60}m
             </span>
           ) : null}
