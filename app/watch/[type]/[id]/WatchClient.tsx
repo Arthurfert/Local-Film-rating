@@ -5,13 +5,17 @@ import VideoPlayer from '@/components/VideoPlayer';
 import type { StreamResponse } from '@/lib/stream';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
+interface SeasonInfo {
+  seasonNumber: number;
+  episodeCount: number;
+}
+
 interface WatchClientProps {
   type: 'movie' | 'tv';
   id: number;
   title?: string;
   poster?: string;
-  numberOfSeasons?: number;
-  numberOfEpisodes?: number;
+  seasons?: SeasonInfo[];
 }
 
 export default function WatchClient({
@@ -19,14 +23,17 @@ export default function WatchClient({
   id,
   title,
   poster,
-  numberOfSeasons,
-  numberOfEpisodes,
+  seasons,
 }: WatchClientProps) {
-  const [season, setSeason] = useState(1);
+  const [seasonIdx, setSeasonIdx] = useState(0);
   const [ep, setEp] = useState(1);
   const [stream, setStream] = useState<StreamResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const currentSeason = seasons?.[seasonIdx];
+  const seasonNumber = currentSeason?.seasonNumber ?? 1;
+  const maxEp = currentSeason?.episodeCount ?? 1;
 
   const fetchStream = async (s: number, e: number) => {
     try {
@@ -48,8 +55,14 @@ export default function WatchClient({
   };
 
   useEffect(() => {
-    fetchStream(season, ep);
-  }, [type, id, season, ep]);
+    if (ep > maxEp) {
+      setEp(maxEp);
+    }
+  }, [seasonIdx, maxEp, ep]);
+
+  useEffect(() => {
+    fetchStream(seasonNumber, ep);
+  }, [type, id, seasonNumber, ep]);
 
   if (error && !loading) {
     return (
@@ -84,22 +97,22 @@ export default function WatchClient({
       ) : null}
 
       {/* TV Show Season/Episode Selector */}
-      {type === 'tv' && numberOfSeasons && (
+      {type === 'tv' && seasons && seasons.length > 0 && (
         <div className="flex items-center gap-4 mt-4 px-2">
           <div className="flex items-center gap-2">
             <label className="text-sm text-white/60">Saison</label>
             <select
-              value={season}
+              value={seasonIdx}
               onChange={(e) => {
-                const s = parseInt(e.target.value, 10);
-                setSeason(s);
+                const idx = parseInt(e.target.value, 10);
+                setSeasonIdx(idx);
                 setEp(1);
               }}
               className="bg-white/10 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50"
             >
-              {Array.from({ length: numberOfSeasons }, (_, i) => i + 1).map((s) => (
-                <option key={s} value={s} className="bg-dark-200">
-                  {s}
+              {seasons.map((s, i) => (
+                <option key={s.seasonNumber} value={i} className="bg-dark-200">
+                  {s.seasonNumber}
                 </option>
               ))}
             </select>
@@ -113,7 +126,7 @@ export default function WatchClient({
               className="bg-white/10 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50"
             >
               {Array.from(
-                { length: numberOfEpisodes ?? 1 },
+                { length: maxEp },
                 (_, i) => i + 1
               ).map((e) => (
                 <option key={e} value={e} className="bg-dark-200">

@@ -34,6 +34,16 @@ export default async function WatchPage({ params }: WatchPageProps) {
   const title = media.title || media.name;
   const releaseDate = media.release_date || media.first_air_date;
 
+  const seasons = type === 'tv' && media.seasons
+    ? media.seasons
+        .filter((s: { season_number: number; episode_count: number }) => s.season_number >= 1 && s.episode_count > 0)
+        .sort((a: { season_number: number }, b: { season_number: number }) => a.season_number - b.season_number)
+        .map((s: { season_number: number; episode_count: number }) => ({
+          seasonNumber: s.season_number,
+          episodeCount: s.episode_count,
+        }))
+    : undefined;
+
   return (
     <div className="min-h-screen bg-dark-100">
       {/* Header */}
@@ -54,8 +64,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
             id={mediaId}
             title={title}
             poster={media.poster_path ? getPosterUrl(media.poster_path, 'w500') : undefined}
-            numberOfSeasons={media.number_of_seasons}
-            numberOfEpisodes={media.number_of_episodes}
+            seasons={seasons}
           />
         </div>
       </div>

@@ -93,12 +93,24 @@ export interface TMDBMovieDetails extends Omit<TMDBMovie, 'genre_ids'> {
   homepage: string | null;
 }
 
+export interface TMDBTVSeason {
+  air_date: string | null;
+  episode_count: number;
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string | null;
+  season_number: number;
+  vote_average: number;
+}
+
 // Détails d'une série TV
 export interface TMDBTVShowDetails extends Omit<TMDBTVShow, 'genre_ids'> {
   genres: TMDBGenre[];
   episode_run_time: number[];
   number_of_seasons: number;
   number_of_episodes: number;
+  seasons: TMDBTVSeason[];
   status: string;
   tagline: string;
   created_by: { id: number; name: string; profile_path: string | null }[];
