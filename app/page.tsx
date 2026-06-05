@@ -29,7 +29,7 @@ export default async function DashboardPage() {
             <span className="block text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-300 pb-2">
               Évaluez & Organisez
             </span>
-            <span className="block mt-2 bg-gradient-to-r from-red-500 via-orange-400 to-yellow-400 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(239,68,68,0.25)] py-1">
+            <span className="block mt-2 font-handwriting italic text-orange-500 drop-shadow-[0_2px_8px_rgba(239,68,68,0.25)] py-1">
               Votre Univers Cinéma
             </span>
           </h1>

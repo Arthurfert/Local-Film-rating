@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        handwriting: ['var(--font-sweetie-bunny)'],
+      },
       colors: {
         primary: {
           50: '#fef2f2',

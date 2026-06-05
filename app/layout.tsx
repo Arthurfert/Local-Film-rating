@@ -1,9 +1,14 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import NavBar from '@/components/NavBar';
 
 const inter = Inter({ subsets: ['latin'] });
+const sweetieBunny = localFont({
+  src: '../public/fonts/SweetieBunny.otf',
+  variable: '--font-sweetie-bunny',
+});
 
 export const metadata: Metadata = {
   title: 'Local Film Rating',
@@ -21,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={`${inter.className} bg-dark-100 text-white antialiased relative`}>
+      <body className={`${inter.className} ${sweetieBunny.variable} bg-dark-100 text-white antialiased relative`}>
         <div className="min-h-screen flex flex-col">
           {/* Navigation Bar */}
           <NavBar />
