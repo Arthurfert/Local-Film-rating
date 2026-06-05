@@ -94,13 +94,13 @@ export default function MovieCard({ review, onSelect, onFavoriteToggle }: MovieC
           className={`absolute top-12 lg:top-14 left-3 p-2 rounded-full transition-all z-10 ${
             isFavorite 
               ? 'bg-red-500 opacity-100' 
-              : 'bg-white/10 opacity-0 group-hover:opacity-100 hover:bg-white/20'
+              : 'bg-white/20 opacity-0 group-hover:opacity-100 hover:bg-white/40'
           }`}
           title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
         >
           <Heart 
             className={`w-5 h-5 transition-all ${
-              isFavorite ? 'text-white fill-white' : 'text-gray-300'
+              isFavorite ? 'text-white fill-white' : 'text-red-400'
             }`}
           />
         </button>
