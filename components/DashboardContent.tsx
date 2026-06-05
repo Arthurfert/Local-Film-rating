@@ -68,7 +68,7 @@ export default function DashboardContent({ initialReviews }: DashboardContentPro
       : sortedReviews;
 
   const handleSelectReview = (review: Review) => {
-    router.push(`/review/${review.id}`);
+    router.push(`/media/${review.media_type}/${review.tmdb_id}`);
   };
 
   const handleFavoriteToggle = (reviewId: string, isFavorite: boolean) => {

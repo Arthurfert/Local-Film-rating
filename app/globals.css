@@ -129,6 +129,11 @@ input[type='range']::-moz-range-thumb {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* Plyr container border-radius */
+.plyr-container .plyr {
+  border-radius: inherit;
+}
+
 /* Loading skeleton */
 .skeleton {
   background: linear-gradient(
