@@ -14,9 +14,21 @@ interface VideoPlayerProps {
 export default function VideoPlayer({ stream, title, poster }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const plyrRef = useRef<Plyr | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!videoRef.current || stream.embed) return;
+
+    const container = containerRef.current;
+
+    const handleFullscreenChange = () => {
+      if (!container) return;
+      const isFullscreen =
+        document.fullscreenElement === container ||
+        (document as any).webkitFullscreenElement === container;
+      container.classList.toggle('rounded-2xl', !isFullscreen);
+      container.classList.toggle('overflow-hidden', !isFullscreen);
+    };
 
     plyrRef.current = new Plyr(videoRef.current, {
       controls: [
@@ -35,14 +47,19 @@ export default function VideoPlayer({ stream, title, poster }: VideoPlayerProps)
       autoplay: false,
     });
 
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
     return () => {
       plyrRef.current?.destroy();
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
     };
   }, [stream.embed]);
 
   if (stream.embed) {
     return (
-      <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl">
+      <div className="relative w-full aspect-video bg-dark-200 rounded-2xl overflow-hidden shadow-2xl">
         <iframe
           src={stream.url}
           className="absolute inset-0 w-full h-full"
@@ -55,7 +72,10 @@ export default function VideoPlayer({ stream, title, poster }: VideoPlayerProps)
   }
 
   return (
-    <div className="w-full rounded-2xl overflow-hidden shadow-2xl bg-black">
+    <div
+      ref={containerRef}
+      className="w-full rounded-2xl overflow-hidden shadow-2xl bg-dark-200 plyr-container"
+    >
       <video
         ref={videoRef}
         poster={poster || undefined}

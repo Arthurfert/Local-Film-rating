@@ -1,214 +1,113 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import type { ReviewFormData, Review } from '@/lib/types';
-import RatingForm from '@/components/RatingForm';
-import { Plus, Check, Play } from 'lucide-react';
+import type { Review } from '@/lib/types';
+import {
+  BookOpen,
+  Eye,
+  Music,
+  Users,
+  Star,
+} from 'lucide-react';
 
 interface MediaActionsClientProps {
   media: any;
   mediaType: 'movie' | 'tv';
-  existingReview?: Review | null;
+  existingReview: Review;
+}
+
+function RatingCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+}) {
+  const getColor = (rating: number) => {
+    if (rating >= 7) return 'text-green-400 bg-green-500/10 border-green-500/20';
+    if (rating >= 5) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+    return 'text-red-400 bg-red-500/10 border-red-500/20';
+  };
+
+  return (
+    <div className={`p-4 lg:p-5 rounded-xl border backdrop-blur-md shadow-lg flex flex-col justify-center ${getColor(value)}`}>
+      <div className="flex items-center gap-2 mb-1 lg:mb-2 opacity-80">
+        {icon}
+        <span className="text-xs lg:text-sm font-medium">{label}</span>
+      </div>
+      <p className="text-2xl lg:text-3xl font-bold drop-shadow-sm">{value.toFixed(1)}</p>
+    </div>
+  );
 }
 
 export default function MediaActionsClient({
-  media,
-  mediaType,
+  media: _media,
+  mediaType: _mediaType,
   existingReview,
 }: MediaActionsClientProps) {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [showRatingForm, setShowRatingForm] = useState(!!existingReview);
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const [watchlistLoading, setWatchlistLoading] = useState(true);
-
-  useEffect(() => {
-    // Check if in watchlist
-    const checkWatchlist = async () => {
-      try {
-        const res = await fetch('/api/watchlist');
-        if (res.ok) {
-          const watchlist = await res.json();
-          const found = watchlist.some((item: any) => item.tmdb_id === media.id && item.media_type === mediaType);
-          setIsInWatchlist(found);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setWatchlistLoading(false);
-      }
-    };
-    checkWatchlist();
-  }, [media.id, mediaType]);
-
-  const handleSubmit = async (data: ReviewFormData) => {
-    setError(null);
-
-    try {
-      const url = existingReview
-        ? `/api/reviews/${existingReview.id}`
-        : '/api/reviews';
-      
-      const method = existingReview ? 'PATCH' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erreur lors de la sauvegarde');
-      }
-
-      router.push('/');
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-    }
+  const getRatingColor = (rating: number) => {
+    if (rating >= 7) return 'text-green-400';
+    if (rating >= 5) return 'text-yellow-400';
+    return 'text-red-400';
   };
 
-  const handleAddToWatchlist = async () => {
-    try {
-      const res = await fetch('/api/watchlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tmdb_id: media.id,
-          media_type: mediaType,
-          title: media.title || media.name,
-          poster_path: media.poster_path,
-          release_date: media.release_date || media.first_air_date,
-          genre_ids: media.genres?.map((g: any) => g.id) || []
-        })
-      });
-      if (res.ok) {
-        setIsInWatchlist(true);
-        // Refresh the router to potentially update global watchlist state if needed
-        router.refresh();
-      }
-    } catch (err) {
-      console.error('Failed to add to watchlist', err);
-    }
+  const getRatingBgColor = (rating: number) => {
+    if (rating >= 7) return 'bg-green-500/20';
+    if (rating >= 5) return 'bg-yellow-500/20';
+    return 'bg-red-500/20';
   };
-
-  // Adapt media data for RatingForm
-  let adaptedMedia = media;
-  if (mediaType === 'tv') {
-    const avgEpisodeRuntime = media.episode_run_time?.length > 0
-      ? Math.round(media.episode_run_time.reduce((a: number, b: number) => a + b, 0) / media.episode_run_time.length)
-      : null;
-
-    adaptedMedia = {
-      ...media,
-      id: media.id,
-      title: media.name,
-      original_title: media.original_name,
-      overview: media.overview,
-      poster_path: media.poster_path,
-      backdrop_path: media.backdrop_path,
-      release_date: media.first_air_date,
-      vote_average: media.vote_average,
-      vote_count: media.vote_count,
-      popularity: media.popularity,
-      genres: media.genres,
-      runtime: avgEpisodeRuntime || 0,
-      adult: false,
-      original_language: media.original_language,
-      video: false,
-      budget: 0,
-      revenue: 0,
-      status: media.status,
-      tagline: media.tagline,
-      production_companies: media.production_companies,
-      production_countries: [],
-      spoken_languages: media.spoken_languages,
-      imdb_id: null,
-      homepage: media.homepage,
-      media_type: 'tv',
-      number_of_seasons: media.number_of_seasons,
-      number_of_episodes: media.number_of_episodes,
-    };
-  }
 
   return (
-    <div>
-      {error && (
-        <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400">
-          {error}
-        </div>
-      )}
-
-      {!showRatingForm && (
-        <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 mb-8">
-          <button
-            onClick={() => setShowRatingForm(true)}
-            className="px-10 lg:px-12 py-3.5 lg:py-4 bg-red-600 hover:bg-red-500 text-white font-bold text-base lg:text-lg rounded-xl transition-colors shadow-lg hover:shadow-red-600/20"
-          >
-            Noter
-          </button>
-
-          <a
-            href={`/watch/${mediaType}/${media.id}`}
-            className="px-10 lg:px-12 py-3.5 lg:py-4 bg-white/10 hover:bg-white/20 text-white font-bold text-base lg:text-lg border border-white/10 rounded-xl transition-colors flex items-center justify-center gap-2 backdrop-blur-md"
-          >
-            <Play className="w-5 h-5 lg:w-6 lg:h-6" />
-            Regarder
-          </a>
-
-          {!watchlistLoading && !isInWatchlist && (
-            <button
-              onClick={handleAddToWatchlist}
-              className="px-10 lg:px-12 py-3.5 lg:py-4 bg-white/10 hover:bg-white/20 text-white font-bold text-base lg:text-lg border border-white/10 rounded-xl transition-colors flex items-center justify-center gap-2 backdrop-blur-md"
-            >
-              <Plus className="w-5 h-5 lg:w-6 lg:h-6" />
-              Ajouter à la watchlist
-            </button>
-          )}
-
-          {!watchlistLoading && isInWatchlist && (
-             <div className="px-10 lg:px-12 py-3.5 lg:py-4 bg-blue-600/20 text-blue-400 font-bold text-base lg:text-lg border border-blue-500/30 rounded-xl flex items-center justify-center gap-2 backdrop-blur-md">
-               <Check className="w-5 h-5 lg:w-6 lg:h-6" />
-               Dans la watchlist
-             </div>
-          )}
-        </div>
-      )}
-
-      {showRatingForm && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h2 className="text-xl font-bold mb-4 drop-shadow text-white">
-            {existingReview ? 'Modifier ma note' : 'Noter ' + (mediaType === 'movie' ? 'ce film' : 'cette série')}
-          </h2>
-          {existingReview && (
-            <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-xl text-yellow-400 text-sm backdrop-blur-md">
-              {`Vous avez déjà noté ` + (mediaType === 'movie' ? 'ce film' : 'cette série') + `. Vous pouvez modifier votre note ci-dessous.`}
-            </div>
-          )}
-          <div className="w-full bg-dark-200/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
-            <RatingForm
-              movie={adaptedMedia}
-              mediaType={mediaType}
-              initialData={existingReview ? {
-                tmdb_id: existingReview.tmdb_id,
-                media_type: mediaType,
-                title: existingReview.title,
-                rating_scenario: existingReview.rating_scenario,
-                rating_visual: existingReview.rating_visual,
-                rating_music: existingReview.rating_music,
-                rating_acting: existingReview.rating_acting,
-                review_text: existingReview.review_text || undefined,
-                watched_date: existingReview.watched_date || undefined,
-                is_favorite: existingReview.is_favorite,
-              } : undefined}
-              onSubmit={handleSubmit}
-              isEditing={!!existingReview}
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Ratings section */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 lg:gap-6">
+        <div
+          className={`md:col-span-2 flex flex-col justify-center items-center gap-2 p-6 lg:p-8 rounded-2xl backdrop-blur-xl border border-white/10 ${getRatingBgColor(
+            existingReview.rating_global
+          )} shadow-2xl`}
+        >
+          <p className="text-xs lg:text-sm text-white/70 font-medium tracking-wide uppercase">Note Globale</p>
+          <div className="flex items-center gap-3">
+            <Star
+              className={`w-10 h-10 lg:w-14 lg:h-14 ${getRatingColor(existingReview.rating_global)} drop-shadow-md`}
+              fill="currentColor"
             />
+            <p className={`text-5xl lg:text-6xl font-bold ${getRatingColor(existingReview.rating_global)} drop-shadow-md`}>
+              {existingReview.rating_global.toFixed(1)}
+            </p>
           </div>
+        </div>
+
+        <div className="md:col-span-3 grid grid-cols-2 gap-3 lg:gap-4">
+          <RatingCard
+            icon={<BookOpen className="w-4 h-4 lg:w-5 lg:h-5" />}
+            label="Scénario"
+            value={existingReview.rating_scenario}
+          />
+          <RatingCard
+            icon={<Eye className="w-4 h-4 lg:w-5 lg:h-5" />}
+            label="Visuel"
+            value={existingReview.rating_visual}
+          />
+          <RatingCard
+            icon={<Music className="w-4 h-4 lg:w-5 lg:h-5" />}
+            label="Musique"
+            value={existingReview.rating_music}
+          />
+          <RatingCard
+            icon={<Users className="w-4 h-4 lg:w-5 lg:h-5" />}
+            label="Acting"
+            value={existingReview.rating_acting}
+          />
+        </div>
+      </div>
+
+      {/* Review text */}
+      {existingReview.review_text && (
+        <div className="p-5 lg:p-6 bg-dark-200/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl mt-4">
+          <h3 className="font-semibold text-base lg:text-lg text-white mb-3">Mon avis</h3>
+          <p className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap">{existingReview.review_text}</p>
         </div>
       )}
     </div>

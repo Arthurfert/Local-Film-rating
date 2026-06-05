@@ -53,7 +53,7 @@ export default function WatchClient({
 
   if (error && !loading) {
     return (
-      <div className="flex items-center justify-center aspect-video bg-black/80 rounded-2xl">
+      <div className="flex items-center justify-center aspect-video bg-dark-200/80 rounded-2xl">
         <div className="flex flex-col items-center gap-3 text-center px-6 max-w-md">
           <AlertCircle className="w-10 h-10 text-yellow-500" />
           <p className="text-white/80 text-sm">{error}</p>
@@ -69,7 +69,7 @@ export default function WatchClient({
     <div>
       {/* Player */}
       {loading ? (
-        <div className="flex items-center justify-center aspect-video bg-black/80 rounded-2xl">
+        <div className="flex items-center justify-center aspect-video bg-dark-200/80 rounded-2xl">
           <div className="flex flex-col items-center gap-3 text-white/60">
             <Loader2 className="w-8 h-8 animate-spin" />
             <span className="text-sm">Chargement du lecteur...</span>

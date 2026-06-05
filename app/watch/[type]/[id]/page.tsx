@@ -47,7 +47,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
       </div>
 
       {/* Player Section */}
-      <div className="w-full bg-black pt-16">
+      <div className="w-full bg-dark-100 pt-16">
         <div className="max-w-7xl mx-auto px-0 lg:px-4 py-4">
           <WatchClient
             type={type as 'movie' | 'tv'}

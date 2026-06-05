@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import OptimizedImage from '@/components/OptimizedImage';
-import { ArrowLeft, Star } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { getMovieDetails, getTVShowDetails } from '@/lib/tmdb.server';
 import { getPosterUrl, getBackdropUrl } from '@/lib/tmdb';
 import { getReviewByTmdbId } from '@/lib/db';
-import MediaActionsClient from './MediaActionsClient';
+import MediaContent from './MediaContent';
 
 interface MediaPageProps {
   params: Promise<{ type: string; id: string }>;
@@ -32,8 +32,6 @@ export default async function MediaPage({ params }: MediaPageProps) {
   }
 
   const existingReview = await getReviewByTmdbId(mediaId, type as 'movie' | 'tv');
-
-  // Normalize fields for display
   const title = media.title || media.name;
   const releaseDate = media.release_date || media.first_air_date;
 
@@ -52,8 +50,7 @@ export default async function MediaPage({ params }: MediaPageProps) {
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-dark-200 to-dark-300" />
         )}
-        
-        {/* Gradient overlays */}
+
         <div className="absolute inset-0 bg-gradient-to-t from-dark-100 via-dark-100/80 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-dark-100/80 via-dark-100/40 to-transparent" />
       </div>
@@ -90,60 +87,18 @@ export default async function MediaPage({ params }: MediaPageProps) {
             </div>
           </div>
 
-          {/* Info & Form */}
-          <div className="flex-1 space-y-5 lg:space-y-6 max-w-4xl w-full">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white drop-shadow-lg">
-              {title}
-            </h1>
-
-            {/* Meta info */}
-            <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-sm lg:text-base font-medium text-white/90 drop-shadow">
-              <span>{type === 'movie' ? 'Film' : 'Série'}</span>
-              
-              {media.vote_average > 0 && (
-                <span className="flex items-center gap-1.5">
-                  <Star className="w-5 h-5 lg:w-6 lg:h-6 text-yellow-500" fill="currentColor" />
-                  {media.vote_average.toFixed(1)}
-                </span>
-              )}
-
-              {releaseDate && (
-                <span>
-                  {releaseDate.split('-')[0]}
-                </span>
-              )}
-            </div>
-
-            {/* Genres */}
-            {media.genres && media.genres.length > 0 && (
-              <div className="flex flex-wrap gap-2 lg:gap-3 pt-1">
-                {media.genres.map((genre: any) => (
-                  <span
-                    key={genre.id}
-                    className="px-3 lg:px-4 py-1.5 lg:py-2 bg-red-950/60 border border-red-900/50 rounded-full text-xs lg:text-sm font-medium text-red-200"
-                  >
-                    {genre.name}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Synopsis */}
-            {media.overview && (
-              <p className="text-white/80 text-sm md:text-base lg:text-lg leading-relaxed drop-shadow max-w-3xl py-2">
-                {media.overview}
-              </p>
-            )}
-
-            {/* Actions Client Component */}
-            <div className="mt-8 lg:mt-10 pt-4 w-full">
-              <MediaActionsClient 
-                media={media} 
-                mediaType={type as 'movie' | 'tv'} 
-                existingReview={existingReview} 
-              />
-            </div>
-          </div>
+          {/* Info & Actions */}
+          <MediaContent
+            media={media}
+            mediaType={type as 'movie' | 'tv'}
+            mediaId={mediaId}
+            existingReview={existingReview}
+            tmdbRating={media.vote_average}
+            releaseDate={releaseDate}
+            title={title}
+            genres={media.genres}
+            overview={media.overview}
+          />
         </div>
       </div>
     </div>
