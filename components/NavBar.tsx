@@ -7,7 +7,7 @@ export default function NavBar() {
   const pathname = usePathname();
 
   // Cacher la barre de navigation sur les pages de notation et de vue de note
-  const isHidden = pathname.startsWith('/rate') || pathname.startsWith('/watch') || pathname.startsWith('/media');
+  const isHidden = pathname.startsWith('/rate') || pathname.startsWith('/watch/') || pathname.startsWith('/media');
 
   if (isHidden) {
     return null;

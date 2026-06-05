@@ -87,6 +87,20 @@ export default function MediaContent({
     }
   };
 
+  const handleRemoveFromWatchlist = async () => {
+    try {
+      const res = await fetch(`/api/watchlist/${mediaId}?mediaType=${mediaType}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setIsInWatchlist(false);
+        router.refresh();
+      }
+    } catch (err) {
+      console.error('Failed to remove from watchlist', err);
+    }
+  };
+
   const openForm = () => {
     router.push(`?edit=1`, { scroll: false });
   };
@@ -198,10 +212,13 @@ export default function MediaContent({
         )}
 
         {!existingReview && !watchlistLoading && isInWatchlist && (
-          <span className="flex items-center gap-2 px-5 lg:px-6 py-2 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-xl backdrop-blur-md">
+          <button
+            onClick={handleRemoveFromWatchlist}
+            className="flex items-center gap-2 px-5 lg:px-6 py-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/30 rounded-xl transition-colors backdrop-blur-md cursor-pointer"
+          >
             <Check className="w-4 h-4 lg:w-5 lg:h-5" />
             Dans la watchlist
-          </span>
+          </button>
         )}
       </div>
 
