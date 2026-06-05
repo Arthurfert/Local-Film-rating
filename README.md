@@ -1,6 +1,6 @@
 # Local Film Rating
 
-Local website for rating movies and TV shows, and save your watchlist.
+Local website for rating movies and TV shows, manage your watchlist, and stream content via embedded players.
 
 ![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
@@ -19,10 +19,12 @@ Local website for rating movies and TV shows, and save your watchlist.
 - **Personal Reviews & Comments**
 - **Dashboard** with filters (by watch date, highest rated, favorites)
 - **Watchlist** management (add, remove, filter)
+- **Streaming** — Watch movies and TV shows via configurable embed provider
+- **Season/Episode Selector** for TV shows on the watch page
 - **Local Database** (JSON format)
-- **Sorting** - by watch date, rating, or date added
-- **Media Filtering** - Movies, Animated Films, TV Shows
-- **Search functionality** - across all reviews and watchlist
+- **Sorting** — by watch date, rating, or date added
+- **Media Filtering** — Movies, Animated Films, TV Shows
+- **Search functionality** — across all reviews and watchlist
 
 ## Installation
 
@@ -31,6 +33,7 @@ Local website for rating movies and TV shows, and save your watchlist.
 - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (Recommended for production)
 - [Node.js](https://nodejs.org/) 18+ (For development mode)
 - A [TMDB API Key](https://www.themoviedb.org/settings/api)
+- A streaming provider URL
 
 ### Steps
 
@@ -49,11 +52,15 @@ Local website for rating movies and TV shows, and save your watchlist.
    ```bash
    cp .env.local.example .env.local
    ```
-   
-   Edit `.env.local` and add your TMDB API credentials :
+
+   Edit `.env.local` and add your TMDB API credentials and streaming URLs:
    ```env
    TMDB_API_KEY=your_tmdb_api_key
    TMDB_API_READ_ACCESS_TOKEN=your_tmdb_read_access_token
+
+   STREAM_PROVIDER=embed
+   STREAM_MOVIE_URL_PATTERN=https://provider/movie/{id}
+   STREAM_TV_URL_PATTERN=https://provider/tv/{id}/{season}/{ep}
    ```
 
 4. **Build the application**
@@ -68,12 +75,13 @@ Local website for rating movies and TV shows, and save your watchlist.
 ```bash
 npm run dev
 ```
+
 > [!NOTE]
 > The application will be available at http://localhost:3000
 
 ### Production Mode with Docker (Recommended)
 
-Docker enhances system isolation and packages all dependencies together securely. 
+Docker enhances system isolation and packages all dependencies together securely.
 
 #### Setup & Start
 
@@ -116,59 +124,61 @@ You can automate this by setting up a cron job (Linux/macOS) or using Windows Ta
 
 ```
 Local-Film-rating/
-├── app/                           # Pages and Next.js routes (App Router)
-│   ├── api/                       # API Routes
-│   │   ├── movies/                # TMDB Movie endpoints
-│   │   │   ├── [id]/               # Get movie details
-│   │   │   ├── popular/            # Get popular movies
-│   │   │   └── search/             # Search movies
-│   │   ├── tv/                    # TMDB TV Show endpoints
-│   │   │   └── [id]/               # Get TV show details
-│   │   ├── reviews/               # Review Management
-│   │   │   ├── route.ts            # List & create reviews
-│   │   │   ├── [id]/               # Update & delete reviews
-│   │   │   └── tmdb/[tmdbId]/      # Get review by TMDB ID
-│   │   ├── watchlist/             # Watchlist Management
-│   │   │   ├── route.ts            # Get watchlist
-│   │   │   └── [id]/               # Add/remove from watchlist
-│   │   └── search/                # Global search
-│   ├── rate/[id]/                 # Movie rating page
-│   │   ├── page.tsx
-│   │   └── RatingFormClient.tsx
-│   ├── rate-tv/[id]/              # TV show rating page
-│   │   ├── page.tsx
-│   │   └── TVRatingFormClient.tsx
-│   ├── review/[id]/               # Review detail page
-│   │   ├── page.tsx
-│   │   ├── not-found.tsx
-│   │   └── DeleteReviewButton.tsx
-│   ├── watchlist/                 # Watchlist page
+├── app/                            # Pages and Next.js routes (App Router)
+│   ├── api/                        # API Routes
+│   │   ├── movies/                 # TMDB Movie endpoints
+│   │   │   ├── [id]/                  # Get movie details
+│   │   │   ├── popular/               # Get popular movies
+│   │   │   └── search/                # Search movies
+│   │   ├── tv/                     # TMDB TV Show endpoints
+│   │   │   └── [id]/                  # Get TV show details
+│   │   ├── reviews/                # Review Management
+│   │   │   ├── route.ts               # List & create reviews
+│   │   │   ├── [id]/                  # Update & delete reviews
+│   │   │   └── tmdb/[tmdbId]/         # Get review by TMDB ID
+│   │   ├── watchlist/              # Watchlist Management
+│   │   │   ├── route.ts               # Get & add to watchlist
+│   │   │   └── [id]/                  # Remove from watchlist
+│   │   ├── stream/                 # Stream URL generation
+│   │   │   └── [type]/[id]/           # Get stream URL by type & ID
+│   │   └── search/                 # Global search
+│   ├── media/[type]/[id]/          # Media details page
+│   │   ├── page.tsx                   # Server component (backdrop, poster)
+│   │   ├── MediaContent.tsx           # Client component (info, actions, form)
+│   │   └── MediaActionsClient.tsx     # Ratings display (rated films)
+│   ├── watch/[type]/[id]/          # Streaming player page
+│   │   ├── page.tsx                   # Server component (metadata)
+│   │   └── WatchClient.tsx            # Client component (player, season/ep selector)
+│   ├── watchlist/                  # Watchlist page
 │   │   └── page.tsx
-│   ├── search/                    # Search results page
+│   ├── search/                     # Search results page
 │   │   └── page.tsx
-│   ├── layout.tsx                 # Root layout
-│   ├── page.tsx                   # Dashboard
-│   └── globals.css                # Global styles
-├── components/                    # React Components
-│   ├── DashboardContent.tsx        # Main dashboard content
-│   ├── MovieCard.tsx               # Movie/TV show card component
-│   ├── MovieGrid.tsx               # Grid of movie cards
-│   ├── NavBar.tsx                  # Navigation bar
-│   ├── RatingForm.tsx              # Rating form component
-│   ├── RatingSlider.tsx            # Custom slider for ratings
-│   ├── SearchBar.tsx               # Search bar component
-│   ├── SearchResults.tsx           # Search results display
-│   └── StatsCard.tsx               # Statistics card
-├── lib/                           # Utilities and configurations
-│   ├── db.ts                       # Local JSON database management
-│   ├── tmdb.server.ts              # Server-side TMDB API integration
-│   ├── tmdb.ts                     # TMDB API client hooks/types
-│   ├── types.ts                    # TypeScript types & interfaces
-│   └── utils.ts                    # Helper functions
-├── data/                          # Data storage
-│   ├── reviews.json                # Reviews database
-│   └── watchlist.json              # Watchlist database
-├── public/                        # Static assets
+│   ├── layout.tsx                  # Root layout
+│   ├── page.tsx                    # Dashboard
+│   └── globals.css                 # Global styles
+├── components/                     # React Components
+│   ├── DashboardContent.tsx           # Main dashboard content
+│   ├── MovieCard.tsx                  # Movie/TV show card component
+│   ├── MovieGrid.tsx                  # Grid of movie cards
+│   ├── NavBar.tsx                     # Navigation bar
+│   ├── RatingForm.tsx                 # Rating form component
+│   ├── RatingSlider.tsx               # Custom slider for ratings
+│   ├── SearchBar.tsx                  # Search bar component
+│   ├── SearchResults.tsx              # Search results display
+│   ├── StatsCard.tsx                  # Statistics card
+│   ├── VideoPlayer.tsx                # Plyr-based video player (embed + direct)
+│   └── OptimizedImage.tsx             # Optimized image component
+├── lib/                            # Utilities and configurations
+│   ├── db.ts                          # Local JSON database management
+│   ├── stream.ts                      # Stream URL generation & config
+│   ├── tmdb.server.ts                 # Server-side TMDB API integration
+│   ├── tmdb.ts                        # TMDB image URL helpers
+│   ├── types.ts                       # TypeScript types & interfaces
+│   └── utils.ts                       # Helper functions
+├── data/                           # Data storage
+│   ├── reviews.json                   # Reviews database
+│   └── watchlist.json                 # Watchlist database
+├── public/                         # Static assets
 ├── Dockerfile                      # Docker multi-stage build config
 ├── docker-compose.yml              # Docker Compose orchestration
 ├── update-container.sh             # Auto-update shell script
@@ -187,6 +197,28 @@ Local-Film-rating/
 - Data is stored locally on your machine
 - No external data sharing
 
+## Legal Notice
+
+> [!CAUTION]
+> **This application is for educational and personal use only.**
+
+- Local-Film-Rating does not host, store, or distribute any copyrighted content
+- All content is sourced from third-party providers and websites
+- Users are solely responsible for ensuring they have legal rights to access any content
+- The developer does not endorse or encourage copyright infringement
+- Users must comply with all applicable laws in their jurisdiction
+- Any legal issues should be directed to the actual content providers
+- This app functions as a search engine aggregator only
+- No copyrighted material is stored on my side
+
+This application is provided "as is" for educational purposes.
+
+The developer:
+- Does not claim ownership of any content
+- Does not profit from copyrighted material in any way
+- Does not control third-party content providers
+- Encourages users to support content creators through legal means
+
 ## Tech Stack
 
 | Technology | Purpose |
@@ -198,6 +230,7 @@ Local-Film-rating/
 | TMDB API | Movie & TV show database |
 | Docker & Compose | Containerization and process isolation |
 | Lucide React | Icon library |
+| Plyr | Video player component |
 
 ## API Endpoints
 
@@ -208,7 +241,7 @@ Local-Film-rating/
 - `GET /api/reviews` - Get all reviews
 - `POST /api/reviews` - Create a new review
 - `GET /api/reviews/tmdb/[tmdbId]` - Get review by TMDB ID
-- `PUT /api/reviews/[id]` - Update a review
+- `PATCH /api/reviews/[id]` - Update a review
 - `DELETE /api/reviews/[id]` - Delete a review
 
 ### Movies
@@ -225,7 +258,10 @@ Local-Film-rating/
 ### Watchlist
 - `GET /api/watchlist` - Get watchlist
 - `POST /api/watchlist` - Add to watchlist
-- `DELETE /api/watchlist/[id]` - Remove from watchlist
+- `DELETE /api/watchlist/[id]` - Remove from watchlist (by UUID or TMDB ID + mediaType)
+
+### Streaming
+- `GET /api/stream/[type]/[id]` - Get stream URL (optional `?season=N&ep=N` for TV)
 </details>
 
 ## License
