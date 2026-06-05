@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ReviewFormData, Review } from '@/lib/types';
 import RatingForm from '@/components/RatingForm';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check, Play } from 'lucide-react';
 
 interface MediaActionsClientProps {
   media: any;
@@ -151,7 +151,15 @@ export default function MediaActionsClient({
           >
             Noter
           </button>
-          
+
+          <a
+            href={`/watch/${mediaType}/${media.id}`}
+            className="px-10 lg:px-12 py-3.5 lg:py-4 bg-white/10 hover:bg-white/20 text-white font-bold text-base lg:text-lg border border-white/10 rounded-xl transition-colors flex items-center justify-center gap-2 backdrop-blur-md"
+          >
+            <Play className="w-5 h-5 lg:w-6 lg:h-6" />
+            Regarder
+          </a>
+
           {!watchlistLoading && !isInWatchlist && (
             <button
               onClick={handleAddToWatchlist}
