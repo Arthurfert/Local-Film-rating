@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Star, Film, Tv } from 'lucide-react';
+import { ArrowLeft, Star, Film, Tv, Loader2 } from 'lucide-react';
 import { getMovieDetails, getTVShowDetails } from '@/lib/tmdb.server';
 import { getPosterUrl } from '@/lib/tmdb';
 import { getReviewByTmdbId } from '@/lib/db';
-import WatchClient from './WatchClient';
+import { WatchClientLazy as WatchClient } from './DynamicWatchClient';
+import { Suspense } from 'react';
 
 interface WatchPageProps {
   params: Promise<{ type: string; id: string }>;
@@ -59,13 +60,26 @@ export default async function WatchPage({ params }: WatchPageProps) {
       {/* Player Section */}
       <div className="w-full bg-dark-100 pt-16">
         <div className="max-w-7xl mx-auto px-0 lg:px-4 py-4">
-          <WatchClient
-            type={type as 'movie' | 'tv'}
-            id={mediaId}
-            title={title}
-            poster={media.poster_path ? getPosterUrl(media.poster_path, 'w500') : undefined}
-            seasons={seasons}
-          />
+          <Suspense fallback={
+            <div className="aspect-video bg-dark-200/80 rounded-2xl flex flex-col items-center justify-center gap-4 border border-white/5">
+              <div className="relative">
+                <Film className="w-10 h-10 text-white/15" />
+                <Loader2 className="w-5 h-5 text-red-400 absolute -bottom-1 -right-1 animate-spin" />
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-sm text-white/40 font-medium">Chargement du lecteur</span>
+                <span className="text-[11px] text-white/20">Récupération du flux en cours...</span>
+              </div>
+            </div>
+          }>
+            <WatchClient
+              type={type as 'movie' | 'tv'}
+              id={mediaId}
+              title={title}
+              poster={media.poster_path ? getPosterUrl(media.poster_path, 'w500') : undefined}
+              seasons={seasons}
+            />
+          </Suspense>
         </div>
       </div>
 
