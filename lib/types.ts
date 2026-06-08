@@ -219,6 +219,13 @@ export interface ReviewFormData {
   is_favorite?: boolean;
 }
 
+export interface SeriesProgressEntry {
+  tmdb_id: number;
+  season_number: number;
+  episode_number: number;
+  updated_at: string;
+}
+
 export interface UserStats {
   user_id: string;
   total_reviews: number;

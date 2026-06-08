@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import VideoPlayer from '@/components/VideoPlayer';
 import type { StreamResponse } from '@/lib/stream';
+import { saveProgress } from '@/lib/seriesProgress';
 import { AlertCircle, Loader2, ChevronDown } from 'lucide-react';
 
 interface SeasonInfo {
@@ -90,7 +92,20 @@ export default function WatchClient({
   poster,
   seasons,
 }: WatchClientProps) {
-  const [seasonIdx, setSeasonIdx] = useState(0);
+  const searchParams = useSearchParams();
+
+  const initialSeasonIdx = (() => {
+    if (seasons) {
+      const sNum = parseInt(searchParams.get('season') ?? '', 10);
+      if (!isNaN(sNum)) {
+        const idx = seasons.findIndex((s) => s.seasonNumber === sNum);
+        if (idx >= 0) return idx;
+      }
+    }
+    return 0;
+  })();
+
+  const [seasonIdx, setSeasonIdx] = useState(initialSeasonIdx);
   const [ep, setEp] = useState(1);
   const [stream, setStream] = useState<StreamResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -99,6 +114,21 @@ export default function WatchClient({
   const currentSeason = seasons?.[seasonIdx];
   const seasonNumber = currentSeason?.seasonNumber ?? 1;
   const maxEp = currentSeason?.episodeCount ?? 1;
+
+  const computedInitialEp = (() => {
+    const epParam = parseInt(searchParams.get('ep') ?? '', 10);
+    if (!isNaN(epParam) && epParam >= 1 && epParam <= maxEp) return epParam;
+    return 1;
+  })();
+
+  const [epInitialized, setEpInitialized] = useState(false);
+
+  useEffect(() => {
+    if (!epInitialized) {
+      setEp(computedInitialEp);
+      setEpInitialized(true);
+    }
+  }, [computedInitialEp, epInitialized]);
 
   const fetchStream = async (s: number, e: number) => {
     try {
@@ -126,8 +156,22 @@ export default function WatchClient({
   }, [seasonIdx, maxEp, ep]);
 
   useEffect(() => {
-    fetchStream(seasonNumber, ep);
-  }, [type, id, seasonNumber, ep]);
+    if (epInitialized) {
+      fetchStream(seasonNumber, ep);
+    }
+  }, [type, id, seasonNumber, ep, epInitialized]);
+
+  const handleSeasonChange = (idx: number) => {
+    setSeasonIdx(idx);
+    setEp(1);
+    const s = seasons?.[idx];
+    if (s) saveProgress(id, s.seasonNumber, 1);
+  };
+
+  const handleEpisodeChange = (newEp: number) => {
+    setEp(newEp);
+    saveProgress(id, seasonNumber, newEp);
+  };
 
   if (error && !loading) {
     return (
@@ -168,7 +212,7 @@ export default function WatchClient({
             <label className="text-xs font-medium text-white/50 tracking-wide uppercase">Saison</label>
             <CustomSelect
               value={seasonIdx}
-              onChange={(idx) => { setSeasonIdx(idx); setEp(1); }}
+              onChange={handleSeasonChange}
               options={seasons.map((s, i) => ({ value: i, label: `Saison ${s.seasonNumber}` }))}
             />
           </div>
@@ -177,7 +221,7 @@ export default function WatchClient({
             <label className="text-xs font-medium text-white/50 tracking-wide uppercase">Épisode</label>
             <CustomSelect
               value={ep}
-              onChange={setEp}
+              onChange={handleEpisodeChange}
               options={Array.from({ length: maxEp }, (_, i) => ({ value: i + 1, label: `${i + 1}` }))}
             />
           </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Review, ReviewFormData } from '@/lib/types';
+import { fetchProgress, computeNextEpisode, type SeriesProgress } from '@/lib/seriesProgress';
 import RatingForm from '@/components/RatingForm';
 import MediaActionsClient from './MediaActionsClient';
 import {
@@ -43,6 +44,17 @@ export default function MediaContent({
   const showEdit = searchParams.get('edit') === '1';
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(true);
+  const [nextEpisode, setNextEpisode] = useState<SeriesProgress | null>(null);
+
+  useEffect(() => {
+    if (mediaType === 'tv') {
+      fetchProgress(mediaId).then((progress) => {
+        if (progress && media.seasons) {
+          setNextEpisode(computeNextEpisode(progress, media.seasons));
+        }
+      });
+    }
+  }, [mediaType, mediaId, media.seasons]);
 
   useEffect(() => {
     const checkWatchlist = async () => {
@@ -172,11 +184,17 @@ export default function MediaContent({
 
         {/* Regarder - always visible */}
         <a
-          href={`/watch/${mediaType}/${mediaId}`}
+          href={
+            mediaType === 'tv' && nextEpisode
+              ? `/watch/${mediaType}/${mediaId}?season=${nextEpisode.seasonNumber}&ep=${nextEpisode.episodeNumber}`
+              : `/watch/${mediaType}/${mediaId}`
+          }
           className="flex items-center gap-2 px-5 lg:px-6 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-xl transition-colors backdrop-blur-md"
         >
           <Play className="w-4 h-4 lg:w-5 lg:h-5" />
-          Regarder
+          {mediaType === 'tv' && nextEpisode
+            ? `Continuer (S${nextEpisode.seasonNumber} E${nextEpisode.episodeNumber})`
+            : 'Regarder'}
         </a>
 
         {/* Modifier / Noter */}

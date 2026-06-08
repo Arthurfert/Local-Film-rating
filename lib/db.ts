@@ -6,12 +6,13 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import type { Review, ReviewFormData, UserStats, WatchlistItem, MediaType } from './types';
+import type { Review, ReviewFormData, UserStats, WatchlistItem, MediaType, SeriesProgressEntry } from './types';
 
 // Chemin vers le fichier de données
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'reviews.json');
 const WATCHLIST_FILE = path.join(DATA_DIR, 'watchlist.json');
+const PROGRESS_FILE = path.join(DATA_DIR, 'progress.json');
 
 // Structure de la base de données
 interface Database {
@@ -20,6 +21,10 @@ interface Database {
 
 interface WatchlistDatabase {
   items: WatchlistItem[];
+}
+
+interface ProgressDatabase {
+  items: SeriesProgressEntry[];
 }
 
 // ============================================
@@ -65,6 +70,21 @@ async function readWatchlist(): Promise<WatchlistDatabase> {
 async function writeWatchlist(db: WatchlistDatabase): Promise<void> {
   await ensureDataDir();
   await fs.writeFile(WATCHLIST_FILE, JSON.stringify(db, null, 2), 'utf-8');
+}
+
+async function readProgress(): Promise<ProgressDatabase> {
+  await ensureDataDir();
+  try {
+    const data = await fs.readFile(PROGRESS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return { items: [] };
+  }
+}
+
+async function writeProgress(db: ProgressDatabase): Promise<void> {
+  await ensureDataDir();
+  await fs.writeFile(PROGRESS_FILE, JSON.stringify(db, null, 2), 'utf-8');
 }
 
 // ============================================
@@ -333,6 +353,40 @@ export async function removeFromWatchlistByTmdbId(tmdbId: number, mediaType: Med
   }
 }
 
+
+// ============================================
+// Fonctions CRUD pour la progression des séries
+// ============================================
+
+export async function getProgress(tmdbId: number): Promise<SeriesProgressEntry | null> {
+  const db = await readProgress();
+  return db.items.find((p) => p.tmdb_id === tmdbId) || null;
+}
+
+export async function upsertProgress(
+  tmdbId: number,
+  seasonNumber: number,
+  episodeNumber: number
+): Promise<SeriesProgressEntry> {
+  const db = await readProgress();
+  const index = db.items.findIndex((p) => p.tmdb_id === tmdbId);
+
+  const entry: SeriesProgressEntry = {
+    tmdb_id: tmdbId,
+    season_number: seasonNumber,
+    episode_number: episodeNumber,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (index >= 0) {
+    db.items[index] = entry;
+  } else {
+    db.items.push(entry);
+  }
+
+  await writeProgress(db);
+  return entry;
+}
 
 // To get types correct
 
