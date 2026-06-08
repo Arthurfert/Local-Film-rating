@@ -3,8 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { getWatchlist, removeFromWatchlist, removeFromWatchlistByTmdbId, isInWatchlist } from '@/lib/db';
 import type { MediaType } from '@/lib/types';
+import { requireAuth } from '@/lib/auth';
 
 export async function GET(request: NextRequest, context: any) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   const params = await context.params;
   try {
     const tmdbId = parseInt(params.id, 10);
@@ -22,6 +25,8 @@ export async function GET(request: NextRequest, context: any) {
 }
 
 export async function DELETE(request: NextRequest, context: any) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   const params = await context.params;
   try {
     const mediaType = request.nextUrl.searchParams.get('mediaType') as MediaType;

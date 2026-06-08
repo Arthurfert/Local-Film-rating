@@ -4,8 +4,11 @@ export const dynamic = 'force-dynamic';
 import { getWatchlist, addToWatchlist } from '@/lib/db';
 import type { WatchlistItem } from '@/lib/types';
 import { getMovieDetails, getTVShowDetails } from '@/lib/tmdb.server';
+import { requireAuth } from '@/lib/auth';
 
 export async function GET() {
+  const authError = await requireAuth();
+  if (authError) return authError;
   try {
     const items = await getWatchlist();
     return NextResponse.json(items);
@@ -15,6 +18,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   try {
     const data = await request.json();
 

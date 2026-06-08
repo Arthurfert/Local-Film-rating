@@ -6,8 +6,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 import { getTVShowDetails } from '@/lib/tmdb.server';
+import { requireAuth } from '@/lib/auth';
 
 export async function GET(request: NextRequest, context: any) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   const params = await context.params;
   try {
     const tvId = parseInt(params.id, 10);

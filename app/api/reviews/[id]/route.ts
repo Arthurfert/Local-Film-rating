@@ -6,9 +6,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 import { getReviewById, updateReview, deleteReview } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
 
 // GET - Récupérer une review par ID
 export async function GET(request: NextRequest, context: any) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   const params = await context.params;
   try {
     const review = await getReviewById(params.id);
@@ -32,6 +35,8 @@ export async function GET(request: NextRequest, context: any) {
 
 // PATCH - Mettre à jour une review
 export async function PATCH(request: NextRequest, context: any) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   const params = await context.params;
   try {
     const body = await request.json();
@@ -57,6 +62,8 @@ export async function PATCH(request: NextRequest, context: any) {
 
 // DELETE - Supprimer une review
 export async function DELETE(request: NextRequest, context: any) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   const params = await context.params;
   try {
     await deleteReview(params.id);

@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildStreamResponse } from '@/lib/stream';
+import { requireAuth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest, context: any) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   const params = await context.params;
   try {
     const type = params.type as string;

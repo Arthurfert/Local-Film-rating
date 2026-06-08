@@ -44,6 +44,7 @@ type CacheEntry<T> = {
 };
 
 const responseCache = new Map<string, CacheEntry<unknown>>();
+const CACHE_MAX_SIZE = 500;
 let http2Session: http2.ClientHttp2Session | null = null;
 
 function getHeaders(accessToken: string): Record<string, string> {
@@ -140,6 +141,10 @@ async function requestJson<T>(url: string, accessToken: string, revalidateSecond
 
         try {
             const value = JSON.parse(body) as T;
+            if (responseCache.size >= CACHE_MAX_SIZE) {
+              const firstKey = responseCache.keys().next().value;
+              if (firstKey) responseCache.delete(firstKey);
+            }
             responseCache.set(cacheKey, {
             expiresAt: Date.now() + revalidateSeconds * 1000,
             value,

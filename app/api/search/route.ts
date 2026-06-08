@@ -6,8 +6,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 import { searchMulti } from '@/lib/tmdb.server';
+import { requireAuth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   try {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('query');

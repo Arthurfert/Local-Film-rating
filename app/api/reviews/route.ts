@@ -6,9 +6,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 import { getAllReviews, createReview, getStats, getMonthlyReviews } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
 
 // GET - Récupérer toutes les reviews
 export async function GET(request: NextRequest) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   try {
     const searchParams = request.nextUrl.searchParams;
     const includeStats = searchParams.get('stats') === 'true';
@@ -39,6 +42,8 @@ export async function GET(request: NextRequest) {
 
 // POST - Créer une nouvelle review
 export async function POST(request: NextRequest) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
   try {
     const body = await request.json();
 
