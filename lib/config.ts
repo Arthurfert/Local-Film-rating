@@ -10,6 +10,8 @@ export interface AppConfig {
   streamProvider: string;
   streamMovieUrlPattern: string;
   streamTvUrlPattern: string;
+  appPassword: string;
+  appSecret: string;
 }
 
 function envDefaults(): AppConfig {
@@ -19,6 +21,8 @@ function envDefaults(): AppConfig {
     streamProvider: process.env.STREAM_PROVIDER || 'embed',
     streamMovieUrlPattern: process.env.STREAM_MOVIE_URL_PATTERN || '',
     streamTvUrlPattern: process.env.STREAM_TV_URL_PATTERN || '',
+    appPassword: process.env.APP_PASSWORD || '',
+    appSecret: process.env.APP_SECRET || '',
   };
 }
 

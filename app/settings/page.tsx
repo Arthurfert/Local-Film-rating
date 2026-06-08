@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ConfigForm {
   tmdbApiKey: string;
@@ -8,19 +9,36 @@ interface ConfigForm {
   streamProvider: string;
   streamMovieUrlPattern: string;
   streamTvUrlPattern: string;
+  appPassword: string;
+  appSecret: string;
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [config, setConfig] = useState<ConfigForm | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    fetch('/api/config')
+    fetch('/api/auth/check')
       .then((r) => r.json())
-      .then(setConfig)
-      .catch(() => setMessage({ type: 'error', text: 'Impossible de charger la configuration' }));
-  }, []);
+      .then((data) => {
+        if (data.authEnabled && !data.authenticated) {
+          router.replace('/login');
+          return;
+        }
+        fetch('/api/config')
+          .then((r) => r.json())
+          .then(setConfig)
+          .catch(() => setMessage({ type: 'error', text: 'Impossible de charger la configuration' }));
+      })
+      .catch(() => {
+        fetch('/api/config')
+          .then((r) => r.json())
+          .then(setConfig)
+          .catch(() => setMessage({ type: 'error', text: 'Impossible de charger la configuration' }));
+      });
+  }, [router]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -75,7 +93,7 @@ export default function SettingsPage() {
           </span>
         </h1>
         <p className="text-gray-400 text-base max-w-lg mx-auto">
-          Configurez vos clés API et votre source de streaming
+          Configurez vos clés API, votre source de streaming et la sécurité
         </p>
       </div>
 
@@ -138,6 +156,31 @@ export default function SettingsPage() {
             onChange={(v) => setConfig({ ...config, streamTvUrlPattern: v })}
             placeholder="ex: https://provider/tv/{id}/{season}/{ep}"
             hint="Utilisez {'{id}'}, {'{season}'}, {'{ep}'}"
+          />
+        </section>
+
+        <section className="glass rounded-2xl p-6 space-y-5 relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-green-500/5 blur-[60px]" />
+          <h2 className="text-lg font-semibold text-white/80">Sécurité</h2>
+          <p className="text-sm text-white/40 -mt-3">
+            Protégez l'accès à l'application par mot de passe. 
+            Laissez vide pour désactiver l'authentification.
+          </p>
+
+          <Field
+            label="Mot de passe"
+            value={config.appPassword}
+            onChange={(v) => setConfig({ ...config, appPassword: v })}
+            placeholder="Laissez vide pour désactiver"
+            hint="Déconnecte tous les utilisateurs actifs lors du changement"
+          />
+
+          <Field
+            label="Clé secrète (APP_SECRET)"
+            value={config.appSecret}
+            onChange={(v) => setConfig({ ...config, appSecret: v })}
+            placeholder="Générée automatiquement si vide"
+            hint="Utilisée pour signer les jetons de session. 32+ caractères hexadécimaux recommandés."
           />
         </section>
 
