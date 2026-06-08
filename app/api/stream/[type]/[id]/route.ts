@@ -31,7 +31,7 @@ export async function GET(request: NextRequest, context: any) {
       ? parseInt(searchParams.get('ep')!, 10)
       : undefined;
 
-    const stream = buildStreamResponse(type, id, season, ep);
+    const stream = await buildStreamResponse(type, id, season, ep);
 
     if (!stream || !stream.url) {
       return NextResponse.json(
