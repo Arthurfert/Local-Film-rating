@@ -48,25 +48,16 @@ Local website for rating movies and TV shows, manage your watchlist, and stream 
    npm install
    ```
 
-3. **Configure environment variables**
-   ```bash
-   cp .env.local.example .env.local
-   ```
-
-   Edit `.env.local` and add your TMDB API credentials and streaming URLs:
-   ```env
-   TMDB_API_KEY=your_tmdb_api_key
-   TMDB_API_READ_ACCESS_TOKEN=your_tmdb_read_access_token
-
-   STREAM_PROVIDER=embed
-   STREAM_MOVIE_URL_PATTERN=https://provider/movie/{id}
-   STREAM_TV_URL_PATTERN=https://provider/tv/{id}/{season}/{ep}
-   ```
-
-4. **Build the application**
+3. **Build the application**
    ```bash
    npm run build
    ```
+
+4. **Configure via the Settings page**
+
+   Start the app (see [Usage](#usage)) then visit **http://localhost:3000/settings** to configure your TMDB API keys and personal streaming URLs.
+
+   > Alternatively, you can pre-seed configuration by creating a `data/config.json` file or setting environment variables (`TMDB_API_KEY`, `TMDB_API_READ_ACCESS_TOKEN`, `STREAM_MOVIE_URL_PATTERN`, `STREAM_TV_URL_PATTERN`, `STREAM_PROVIDER`). App configs override env vars, which in turn act as fallback defaults.
 
 ## Usage
 
@@ -107,8 +98,8 @@ Docker enhances system isolation and packages all dependencies together securely
 | `npm run docker:logs` | View container logs in real-time |
 
 #### Data & Config persistence
-- **Environment variables**: Automatically loaded from `.env.local` at runtime.
-- **Database**: All movie ratings and watchlists are stored in `./data` on the host, which is mounted into the container as a persistent volume. You will not lose your data if the container is rebuilt or restarted.
+- **Database & Configuration**: All movie ratings, watchlists, and app configuration (API keys, streaming URLs) are stored in `./data` on the host, which is mounted into the container as a persistent volume. You will not lose your data if the container is rebuilt or restarted. Configure your API keys via the **Settings** page after first launch.
+- **Secrets**: API keys are stored in `data/config.json` (already gitignored) and are never exposed to the browser — they are only read server-side. Environment variables (`TMDB_API_KEY`, etc.) act as optional fallbacks.
 
 #### Automated Security Updates
 We provide a helper script `./update-container.sh` that pulls the latest Node base image, upgrades Alpine OS packages (`apk upgrade`), rebuilds the container without cache to patch any vulnerabilities, and prunes unused images:
@@ -126,6 +117,8 @@ You can automate this by setting up a cron job (Linux/macOS) or using Windows Ta
 Local-Film-rating/
 ├── app/                            # Pages and Next.js routes (App Router)
 │   ├── api/                        # API Routes
+│   │   ├── config/                 # Configuration management
+│   │   │   └── route.ts               # GET (masked) / PUT config
 │   │   ├── movies/                 # TMDB Movie endpoints
 │   │   │   ├── [id]/                  # Get movie details
 │   │   │   ├── popular/               # Get popular movies
@@ -142,6 +135,8 @@ Local-Film-rating/
 │   │   ├── stream/                 # Stream URL generation
 │   │   │   └── [type]/[id]/           # Get stream URL by type & ID
 │   │   └── search/                 # Global search
+│   ├── settings/                   # Settings page
+│   │   └── page.tsx                   # Configuration UI (TMDB, streaming)
 │   ├── media/[type]/[id]/          # Media details page
 │   │   ├── page.tsx                   # Server component (backdrop, poster)
 │   │   ├── MediaContent.tsx           # Client component (info, actions, form)
@@ -169,6 +164,7 @@ Local-Film-rating/
 │   ├── VideoPlayer.tsx                # Plyr-based video player (embed + direct)
 │   └── OptimizedImage.tsx             # Optimized image component
 ├── lib/                            # Utilities and configurations
+│   ├── config.ts                      # Runtime config manager (read/write data/config.json)
 │   ├── db.ts                          # Local JSON database management
 │   ├── stream.ts                      # Stream URL generation & config
 │   ├── tmdb.server.ts                 # Server-side TMDB API integration
@@ -192,8 +188,9 @@ Local-Film-rating/
 
 ## Security
 
-- The TMDB API key is **never exposed to the client**
-- All TMDB API calls go through Next.js API Routes (serverless)
+- API keys are **never exposed to the client** — the Settings API returns masked values (only last 4 characters visible)
+- All TMDB API calls go through Next.js API Routes (server-side only)
+- Configuration is stored in `data/config.json` (gitignored by default), safely inside the Docker volume
 - Data is stored locally on your machine
 - No external data sharing
 
@@ -259,6 +256,10 @@ The developer:
 - `GET /api/watchlist` - Get watchlist
 - `POST /api/watchlist` - Add to watchlist
 - `DELETE /api/watchlist/[id]` - Remove from watchlist (by UUID or TMDB ID + mediaType)
+
+### Configuration
+- `GET /api/config` - Get current configuration (masked secrets)
+- `PUT /api/config` - Update configuration
 
 ### Streaming
 - `GET /api/stream/[type]/[id]` - Get stream URL (optional `?season=N&ep=N` for TV)

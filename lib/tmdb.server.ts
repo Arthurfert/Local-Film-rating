@@ -12,15 +12,30 @@ import type {
     TMDBMediaItem,
     MediaType,
 } from './types';
+import { readConfig } from './config';
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_ORIGIN = 'https://api.themoviedb.org';
 
-const TMDB_API_KEY = process.env.TMDB_API_KEY;
-const TMDB_READ_ACCESS_TOKEN = process.env.TMDB_API_READ_ACCESS_TOKEN;
+let tmdbApiKey = process.env.TMDB_API_KEY || '';
+let tmdbReadAccessToken = process.env.TMDB_API_READ_ACCESS_TOKEN || '';
+let credsLoaded = false;
 
-if (!TMDB_API_KEY && !TMDB_READ_ACCESS_TOKEN) {
-    console.warn('Warning: TMDB API credentials not configured');
+async function ensureCreds(): Promise<void> {
+    if (credsLoaded) return;
+    try {
+        const config = await readConfig();
+        tmdbApiKey = config.tmdbApiKey || process.env.TMDB_API_KEY || '';
+        tmdbReadAccessToken = config.tmdbApiReadAccessToken || process.env.TMDB_API_READ_ACCESS_TOKEN || '';
+    } catch {
+        // fallback to env defaults already set
+    }
+    credsLoaded = true;
+}
+
+async function getCreds(): Promise<{ apiKey: string; accessToken: string }> {
+    await ensureCreds();
+    return { apiKey: tmdbApiKey, accessToken: tmdbReadAccessToken };
 }
 
 type CacheEntry<T> = {
@@ -31,10 +46,10 @@ type CacheEntry<T> = {
 const responseCache = new Map<string, CacheEntry<unknown>>();
 let http2Session: http2.ClientHttp2Session | null = null;
 
-function getHeaders(): Record<string, string> {
-    if (TMDB_READ_ACCESS_TOKEN) {
+function getHeaders(accessToken: string): Record<string, string> {
+    if (accessToken) {
         return {
-        authorization: `Bearer ${TMDB_READ_ACCESS_TOKEN}`,
+        authorization: `Bearer ${accessToken}`,
         accept: 'application/json',
         };
     }
@@ -44,11 +59,11 @@ function getHeaders(): Record<string, string> {
     };
 }
 
-function buildUrl(endpoint: string, params: Record<string, string> = {}): string {
+function buildUrl(endpoint: string, accessToken: string, apiKey: string, params: Record<string, string> = {}): string {
     const url = new URL(`${TMDB_BASE_URL}${endpoint}`);
 
-    if (!TMDB_READ_ACCESS_TOKEN && TMDB_API_KEY) {
-        url.searchParams.set('api_key', TMDB_API_KEY);
+    if (!accessToken && apiKey) {
+        url.searchParams.set('api_key', apiKey);
     }
 
     Object.entries(params).forEach(([key, value]) => {
@@ -76,12 +91,12 @@ function getHttp2Session(): http2.ClientHttp2Session {
     return http2Session;
 }
 
-function getCacheKey(url: string): string {
-    return `${TMDB_READ_ACCESS_TOKEN ? 'bearer' : 'api-key'}:${url}`;
+function getCacheKey(url: string, hasAccessToken: boolean): string {
+    return `${hasAccessToken ? 'bearer' : 'api-key'}:${url}`;
 }
 
-async function requestJson<T>(url: string, revalidateSeconds: number): Promise<T> {
-    const cacheKey = getCacheKey(url);
+async function requestJson<T>(url: string, accessToken: string, revalidateSeconds: number): Promise<T> {
+    const cacheKey = getCacheKey(url, !!accessToken);
     const cached = responseCache.get(cacheKey) as CacheEntry<T> | undefined;
 
     if (cached && cached.expiresAt > Date.now()) {
@@ -97,7 +112,7 @@ async function requestJson<T>(url: string, revalidateSeconds: number): Promise<T
         ':path': `${parsedUrl.pathname}${parsedUrl.search}`,
         ':authority': parsedUrl.host,
         ':scheme': parsedUrl.protocol.replace(':', ''),
-        ...getHeaders(),
+        ...getHeaders(accessToken),
         });
 
     const chunks: Buffer[] = [];
@@ -140,8 +155,9 @@ async function requestJson<T>(url: string, revalidateSeconds: number): Promise<T
 }
 
 async function tmdbGet<T>(endpoint: string, params: Record<string, string>, revalidateSeconds: number): Promise<T> {
-    const url = buildUrl(endpoint, params);
-    return requestJson<T>(url, revalidateSeconds);
+    const { apiKey, accessToken } = await getCreds();
+    const url = buildUrl(endpoint, accessToken, apiKey, params);
+    return requestJson<T>(url, accessToken, revalidateSeconds);
 }
 
 export async function searchMovies(

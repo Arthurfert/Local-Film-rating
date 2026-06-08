@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Settings } from 'lucide-react';
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -25,6 +26,13 @@ export default function NavBar() {
             Watchlist
           </Link>
         </div>
+        <Link
+          href="/settings"
+          className="text-gray-400 hover:text-white transition-colors"
+          title="Paramètres"
+        >
+          <Settings size={18} />
+        </Link>
       </nav>
     </div>
   );
