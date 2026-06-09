@@ -134,6 +134,18 @@ input[type='range']::-moz-range-thumb {
   border-radius: inherit;
 }
 
+/* Ensure fullscreen works on the container wrapper */
+.plyr-container:fullscreen {
+  background: #000;
+  border-radius: 0 !important;
+  height: 100%;
+  margin: 0;
+  width: 100%;
+}
+.plyr-container:fullscreen video {
+  height: 100%;
+}
+
 /* Loading skeleton */
 .skeleton {
   background: linear-gradient(
