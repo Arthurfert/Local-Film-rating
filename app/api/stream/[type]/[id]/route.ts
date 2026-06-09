@@ -33,8 +33,9 @@ export async function GET(request: NextRequest, context: any) {
     const ep = searchParams.get('ep')
       ? parseInt(searchParams.get('ep')!, 10)
       : undefined;
+    const provider = searchParams.get('provider') || undefined;
 
-    const stream = await buildStreamResponse(type, id, season, ep);
+    const stream = await buildStreamResponse(type, id, season, ep, provider);
 
     if (!stream || !stream.url) {
       return NextResponse.json(

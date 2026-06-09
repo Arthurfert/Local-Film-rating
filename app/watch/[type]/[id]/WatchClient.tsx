@@ -110,6 +110,8 @@ export default function WatchClient({
   const [stream, setStream] = useState<StreamResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [providers, setProviders] = useState<string[]>([]);
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
 
   const currentSeason = seasons?.[seasonIdx];
   const seasonNumber = currentSeason?.seasonNumber ?? 1;
@@ -130,12 +132,29 @@ export default function WatchClient({
     }
   }, [computedInitialEp, epInitialized]);
 
-  const fetchStream = async (s: number, e: number) => {
+  useEffect(() => {
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((c) => {
+        const names: string[] = (c.streamProviders || []).map((p: any) => p.name).filter(Boolean);
+        setProviders(names);
+        if (names.length > 0 && !selectedProvider) {
+          setSelectedProvider(names[0]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const fetchStream = async (s: number, e: number, prov?: string) => {
     try {
       setLoading(true);
       setError(null);
-      const params = type === 'tv' ? `?season=${s}&ep=${e}` : '';
-      const res = await fetch(`/api/stream/${type}/${id}${params}`);
+      let params = type === 'tv' ? `?season=${s}&ep=${e}` : '?';
+      if (prov) {
+        params += (params.includes('=') ? '&' : '') + `provider=${encodeURIComponent(prov)}`;
+      }
+      const url = `/api/stream/${type}/${id}${params}`;
+      const res = await fetch(url);
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || 'Erreur lors du chargement du flux');
@@ -157,9 +176,9 @@ export default function WatchClient({
 
   useEffect(() => {
     if (epInitialized) {
-      fetchStream(seasonNumber, ep);
+      fetchStream(seasonNumber, ep, selectedProvider);
     }
-  }, [type, id, seasonNumber, ep, epInitialized]);
+  }, [type, id, seasonNumber, ep, epInitialized, selectedProvider]);
 
   const handleSeasonChange = (idx: number) => {
     setSeasonIdx(idx);
@@ -171,6 +190,10 @@ export default function WatchClient({
   const handleEpisodeChange = (newEp: number) => {
     setEp(newEp);
     saveProgress(id, seasonNumber, newEp);
+  };
+
+  const handleProviderChange = (name: string) => {
+    setSelectedProvider(name);
   };
 
   if (error && !loading) {
@@ -189,7 +212,6 @@ export default function WatchClient({
 
   return (
     <div>
-      {/* Player */}
       {loading ? (
         <div className="flex items-center justify-center aspect-video bg-dark-200/80 rounded-2xl">
           <div className="flex flex-col items-center gap-3 text-white/60">
@@ -205,28 +227,40 @@ export default function WatchClient({
         />
       ) : null}
 
-      {/* TV Show Season/Episode Selector */}
-      {type === 'tv' && seasons && seasons.length > 0 && (
-        <div className="flex items-center gap-4 mt-4 px-2">
+      <div className="flex items-center gap-4 mt-4 px-2 flex-wrap">
+        {providers.length > 1 && (
           <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-white/50 tracking-wide uppercase">Saison</label>
+            <label className="text-xs font-medium text-white/50 tracking-wide uppercase">Source</label>
             <CustomSelect
-              value={seasonIdx}
-              onChange={handleSeasonChange}
-              options={seasons.map((s, i) => ({ value: i, label: `Saison ${s.seasonNumber}` }))}
+              value={providers.indexOf(selectedProvider)}
+              onChange={(idx) => handleProviderChange(providers[idx])}
+              options={providers.map((name, i) => ({ value: i, label: name }))}
             />
           </div>
+        )}
 
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-white/50 tracking-wide uppercase">Épisode</label>
-            <CustomSelect
-              value={ep}
-              onChange={handleEpisodeChange}
-              options={Array.from({ length: maxEp }, (_, i) => ({ value: i + 1, label: `${i + 1}` }))}
-            />
-          </div>
-        </div>
-      )}
+        {type === 'tv' && seasons && seasons.length > 0 && (
+          <>
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-white/50 tracking-wide uppercase">Saison</label>
+              <CustomSelect
+                value={seasonIdx}
+                onChange={handleSeasonChange}
+                options={seasons.map((s, i) => ({ value: i, label: `Saison ${s.seasonNumber}` }))}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-white/50 tracking-wide uppercase">Épisode</label>
+              <CustomSelect
+                value={ep}
+                onChange={handleEpisodeChange}
+                options={Array.from({ length: maxEp }, (_, i) => ({ value: i + 1, label: `${i + 1}` }))}
+              />
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

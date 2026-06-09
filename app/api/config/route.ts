@@ -20,6 +20,7 @@ export async function GET() {
     streamProvider: config.streamProvider,
     streamMovieUrlPattern: config.streamMovieUrlPattern,
     streamTvUrlPattern: config.streamTvUrlPattern,
+    streamProviders: config.streamProviders,
     appPassword: maskValue(config.appPassword),
     appSecret: maskValue(config.appSecret),
   });
@@ -42,6 +43,7 @@ export async function PUT(request: Request) {
     streamProvider: body.streamProvider ?? current.streamProvider,
     streamMovieUrlPattern: body.streamMovieUrlPattern ?? current.streamMovieUrlPattern,
     streamTvUrlPattern: body.streamTvUrlPattern ?? current.streamTvUrlPattern,
+    streamProviders: body.streamProviders ?? current.streamProviders,
     appPassword: resolve(body.appPassword, current.appPassword),
     appSecret: resolve(body.appSecret, current.appSecret),
   };

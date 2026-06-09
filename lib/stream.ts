@@ -1,10 +1,12 @@
 import { readConfig } from './config';
+import type { StreamProviderConfig } from './config';
 
 export type StreamProvider = 'embed' | 'direct';
 
 export interface StreamResponse {
   url: string;
   provider: StreamProvider;
+  providerName?: string;
   type: 'movie' | 'tv';
   id: number;
   embed?: boolean;
@@ -20,56 +22,49 @@ function formatUrl(pattern: string, id: number, season?: number, ep?: number): s
   return url;
 }
 
-function envDefaults() {
-  return {
-    moviePattern: process.env.STREAM_MOVIE_URL_PATTERN || '',
-    tvPattern: process.env.STREAM_TV_URL_PATTERN || '',
-    provider: (process.env.STREAM_PROVIDER || 'embed') as StreamProvider,
-  };
-}
+export async function getStreamUrl(
+  type: 'movie' | 'tv',
+  id: number,
+  season?: number,
+  ep?: number,
+  providerName?: string
+): Promise<{ url: string; provider: StreamProvider; providerName: string } | null> {
+  const config = await readConfig();
+  const providers = config.streamProviders || [];
 
-let streamConfig = envDefaults();
-let streamConfigLoaded = false;
-
-async function ensureStreamConfig(): Promise<void> {
-  if (streamConfigLoaded) return;
-  try {
-    const config = await readConfig();
-    streamConfig = {
-      moviePattern: config.streamMovieUrlPattern || envDefaults().moviePattern,
-      tvPattern: config.streamTvUrlPattern || envDefaults().tvPattern,
-      provider: (config.streamProvider || envDefaults().provider) as StreamProvider,
-    };
-  } catch {
-    streamConfig = envDefaults();
+  let p: StreamProviderConfig | undefined;
+  if (providerName) {
+    p = providers.find((sp) => sp.name === providerName);
   }
-  streamConfigLoaded = true;
-}
-
-export async function getStreamUrl(type: 'movie' | 'tv', id: number, season?: number, ep?: number): Promise<string> {
-  await ensureStreamConfig();
-  if (type === 'movie') {
-    return formatUrl(streamConfig.moviePattern, id);
+  if (!p && providers.length > 0) {
+    p = providers[0];
   }
-  return formatUrl(streamConfig.tvPattern, id, season, ep);
+  if (!p) return null;
+
+  const pattern = type === 'movie' ? p.movieUrlPattern : p.tvUrlPattern;
+  const url = formatUrl(pattern, id, season, ep);
+  if (!url) return null;
+
+  return { url, provider: p.type, providerName: p.name };
 }
 
 export async function buildStreamResponse(
   type: 'movie' | 'tv',
   id: number,
   season?: number,
-  ep?: number
+  ep?: number,
+  providerName?: string
 ): Promise<StreamResponse | null> {
-  await ensureStreamConfig();
-  const url = await getStreamUrl(type, id, season, ep);
-  if (!url) return null;
+  const result = await getStreamUrl(type, id, season, ep, providerName);
+  if (!result) return null;
 
   return {
-    url,
-    provider: streamConfig.provider,
+    url: result.url,
+    provider: result.provider,
+    providerName: result.providerName,
     type,
     id,
-    embed: streamConfig.provider === 'embed',
+    embed: result.provider === 'embed',
     ...(type === 'tv' ? { season, ep } : {}),
   };
 }

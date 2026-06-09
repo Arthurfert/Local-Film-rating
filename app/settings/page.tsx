@@ -3,12 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface StreamProviderConfig {
+  name: string;
+  type: 'embed' | 'direct';
+  movieUrlPattern: string;
+  tvUrlPattern: string;
+}
+
 interface ConfigForm {
   tmdbApiKey: string;
   tmdbApiReadAccessToken: string;
   streamProvider: string;
   streamMovieUrlPattern: string;
   streamTvUrlPattern: string;
+  streamProviders: StreamProviderConfig[];
   appPassword: string;
   appSecret: string;
 }
@@ -29,13 +37,13 @@ export default function SettingsPage() {
         }
         fetch('/api/config')
           .then((r) => r.json())
-          .then(setConfig)
+          .then((c) => setConfig({ ...c, streamProviders: c.streamProviders || [] }))
           .catch(() => setMessage({ type: 'error', text: 'Impossible de charger la configuration' }));
       })
       .catch(() => {
         fetch('/api/config')
           .then((r) => r.json())
-          .then(setConfig)
+          .then((c) => setConfig({ ...c, streamProviders: c.streamProviders || [] }))
           .catch(() => setMessage({ type: 'error', text: 'Impossible de charger la configuration' }));
       });
   }, [router]);
@@ -66,6 +74,32 @@ export default function SettingsPage() {
     }
   }
 
+  function addProvider() {
+    if (!config) return;
+    setConfig({
+      ...config,
+      streamProviders: [
+        ...config.streamProviders,
+        { name: '', type: 'embed', movieUrlPattern: '', tvUrlPattern: '' },
+      ],
+    });
+  }
+
+  function removeProvider(idx: number) {
+    if (!config) return;
+    setConfig({
+      ...config,
+      streamProviders: config.streamProviders.filter((_, i) => i !== idx),
+    });
+  }
+
+  function updateProvider(idx: number, field: keyof StreamProviderConfig, value: string) {
+    if (!config) return;
+    const updated = [...config.streamProviders];
+    updated[idx] = { ...updated[idx], [field]: value };
+    setConfig({ ...config, streamProviders: updated });
+  }
+
   if (!config) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -79,7 +113,6 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen pt-32 pb-16 px-4 sm:px-8 max-w-2xl mx-auto relative">
-      {/* Effets de lueur d'ambiance en arrière-plan */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[700px] pointer-events-none -z-10 select-none">
         <div className="absolute top-[5%] left-[10%] w-[40%] h-[50%] rounded-full bg-red-500/20 blur-[120px] opacity-80" />
         <div className="absolute top-[10%] right-[10%] w-[35%] h-[50%] rounded-full bg-amber-500/20 blur-[120px] opacity-80" />
@@ -93,7 +126,7 @@ export default function SettingsPage() {
           </span>
         </h1>
         <p className="text-gray-400 text-base max-w-lg mx-auto">
-          Configurez vos clés API, votre source de streaming et la sécurité
+          Configurez vos clés API, vos sources de streaming et la sécurité
         </p>
       </div>
 
@@ -127,36 +160,77 @@ export default function SettingsPage() {
 
         <section className="glass rounded-2xl p-6 space-y-5 relative overflow-hidden">
           <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full bg-amber-500/5 blur-[60px]" />
-          <h2 className="text-lg font-semibold text-white/80">Streaming</h2>
-          <p className="text-sm text-white/40 -mt-3">
-            Configurez la source de streaming. Laissez vide pour désactiver.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-white/80">Sources de streaming</h2>
+              <p className="text-sm text-white/40 mt-1">
+                Ajoutez un ou plusieurs fournisseurs. Vous pourrez basculer entre eux sur la page de lecture.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={addProvider}
+              className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white/80 hover:text-white text-sm font-medium transition-all duration-200"
+            >
+              + Ajouter
+            </button>
+          </div>
 
-          <SelectField
-            label="Fournisseur"
-            value={config.streamProvider}
-            onChange={(v) => setConfig({ ...config, streamProvider: v })}
-            options={[
-              { value: 'embed', label: 'Embed (iframe)' },
-              { value: 'direct', label: 'Direct (URL directe)' },
-            ]}
-          />
+          {config.streamProviders.length === 0 && (
+            <div className="text-center py-8 text-white/30 text-sm">
+              Aucun fournisseur configuré. Cliquez sur &quot;+ Ajouter&quot; pour en créer un.
+            </div>
+          )}
 
-          <Field
-            label="Pattern URL Films"
-            value={config.streamMovieUrlPattern}
-            onChange={(v) => setConfig({ ...config, streamMovieUrlPattern: v })}
-            placeholder="ex: https://provider/movie/{id}"
-            hint="Utilisez {'{id}'} pour l'ID du film"
-          />
+          {config.streamProviders.map((p, idx) => (
+            <div key={idx} className="border border-white/10 rounded-xl p-4 space-y-4 relative">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-white/40 uppercase tracking-wide">
+                  Fournisseur #{idx + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeProvider(idx)}
+                  className="text-red-400 hover:text-red-300 text-xs font-medium transition-colors"
+                >
+                  Supprimer
+                </button>
+              </div>
 
-          <Field
-            label="Pattern URL Séries"
-            value={config.streamTvUrlPattern}
-            onChange={(v) => setConfig({ ...config, streamTvUrlPattern: v })}
-            placeholder="ex: https://provider/tv/{id}/{season}/{ep}"
-            hint="Utilisez {'{id}'}, {'{season}'}, {'{ep}'}"
-          />
+              <Field
+                label="Nom"
+                value={p.name}
+                onChange={(v) => updateProvider(idx, 'name', v)}
+                placeholder="Choississez un nom pour ce fournisseur"
+              />
+
+              <SelectField
+                label="Type"
+                value={p.type}
+                onChange={(v) => updateProvider(idx, 'type', v)}
+                options={[
+                  { value: 'embed', label: 'Embed (iframe)' },
+                  { value: 'direct', label: 'Direct (URL directe)' },
+                ]}
+              />
+
+              <Field
+                label="Pattern URL Films"
+                value={p.movieUrlPattern}
+                onChange={(v) => updateProvider(idx, 'movieUrlPattern', v)}
+                placeholder="ex: https://provider/movie/{id}"
+                hint="Utilisez {'{id}'} pour l'ID du film"
+              />
+
+              <Field
+                label="Pattern URL Séries"
+                value={p.tvUrlPattern}
+                onChange={(v) => updateProvider(idx, 'tvUrlPattern', v)}
+                placeholder="ex: https://provider/tv/{id}/{season}/{ep}"
+                hint="Utilisez {'{id}'}, {'{season}'}, {'{ep}'}"
+              />
+            </div>
+          ))}
         </section>
 
         <section className="glass rounded-2xl p-6 space-y-5 relative overflow-hidden">
