@@ -17,8 +17,6 @@ interface ConfigForm {
   streamMovieUrlPattern: string;
   streamTvUrlPattern: string;
   streamProviders: StreamProviderConfig[];
-  appPassword: string;
-  appSecret: string;
 }
 
 export default function SettingsPage() {
@@ -30,10 +28,9 @@ export default function SettingsPage() {
   useEffect(() => {
     fetch('/api/auth/check')
       .then((r) => r.json())
-      .then((data) => {
-        if (data.authEnabled && !data.authenticated) {
-          router.replace('/login');
-          return;
+      .then(async (data) => {
+        if (!data.authenticated) {
+          await fetch('/api/auth/auto-login', { method: 'POST' });
         }
         fetch('/api/config')
           .then((r) => r.json())
@@ -126,7 +123,7 @@ export default function SettingsPage() {
           </span>
         </h1>
         <p className="text-gray-400 text-base max-w-lg mx-auto">
-          Configurez vos clés API, vos sources de streaming et la sécurité
+          Configurez vos clés API et vos sources de streaming
         </p>
       </div>
 
@@ -231,31 +228,6 @@ export default function SettingsPage() {
               />
             </div>
           ))}
-        </section>
-
-        <section className="glass rounded-2xl p-6 space-y-5 relative overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-green-500/5 blur-[60px]" />
-          <h2 className="text-lg font-semibold text-white/80">Sécurité</h2>
-          <p className="text-sm text-white/40 -mt-3">
-            Protégez l'accès à l'application par mot de passe. 
-            Laissez vide pour désactiver l'authentification.
-          </p>
-
-          <Field
-            label="Mot de passe"
-            value={config.appPassword}
-            onChange={(v) => setConfig({ ...config, appPassword: v })}
-            placeholder="Laissez vide pour désactiver"
-            hint="Déconnecte tous les utilisateurs actifs lors du changement"
-          />
-
-          <Field
-            label="Clé secrète (APP_SECRET)"
-            value={config.appSecret}
-            onChange={(v) => setConfig({ ...config, appSecret: v })}
-            placeholder="Générée automatiquement si vide"
-            hint="Utilisée pour signer les jetons de session. 32+ caractères hexadécimaux recommandés."
-          />
         </section>
 
         {message && (

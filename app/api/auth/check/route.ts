@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server';
-import { isAuthEnabled, checkSession } from '@/lib/auth';
+import { checkSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const [authEnabled, authenticated] = await Promise.all([
-    isAuthEnabled(),
-    checkSession(),
-  ]);
-  return NextResponse.json({ authenticated, authEnabled });
+  const authenticated = await checkSession();
+  return NextResponse.json({ authenticated });
 }

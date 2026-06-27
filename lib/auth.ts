@@ -2,21 +2,20 @@ import { createHmac, timingSafeEqual, randomBytes } from 'crypto';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { rateLimit } from './rate-limit';
-import { readConfig } from './config';
+import { readConfig, writeConfig } from './config';
 
 const ENV_SECRET = process.env.APP_SECRET || '';
-const ENV_PASSWORD = process.env.APP_PASSWORD || '';
 
 const SESSION_COOKIE = 'session';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
-const FALLBACK_SECRET = 'change-me-local-film-rating-secret';
 
-function getEffectiveSecret(configSecret: string): string {
-  return ENV_SECRET || configSecret || FALLBACK_SECRET;
-}
-
-function getEffectivePassword(configPassword: string): string {
-  return ENV_PASSWORD || configPassword || '';
+export async function getEffectiveSecret(): Promise<string> {
+  if (ENV_SECRET) return ENV_SECRET;
+  const config = await readConfig();
+  if (config.appSecret) return config.appSecret;
+  const generated = randomBytes(32).toString('hex');
+  await writeConfig({ ...config, appSecret: generated });
+  return generated;
 }
 
 function sign(payload: string, secret: string): string {
@@ -45,21 +44,8 @@ export function verifySessionToken(token: string, secret: string): boolean {
   }
 }
 
-export function validatePassword(input: string, expected: string): boolean {
-  if (!expected) return false;
-  return timingSafeEqual(
-    Buffer.from(input),
-    Buffer.from(expected)
-  );
-}
-
 export async function requireAuth(request?: Request): Promise<NextResponse | null> {
-  const config = await readConfig();
-  const password = getEffectivePassword(config.appPassword);
-  const secret = getEffectiveSecret(config.appSecret);
-  const authEnabled = password.length > 0;
-
-  if (!authEnabled) return null;
+  const secret = await getEffectiveSecret();
 
   if (request) {
     const origin = request.headers.get('origin');
@@ -80,7 +66,7 @@ export async function requireAuth(request?: Request): Promise<NextResponse | nul
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token || !verifySessionToken(token, secret)) {
-    return NextResponse.json({ error: 'Non authentifié. Connectez-vous via /login' }, { status: 401 });
+    return NextResponse.json({ error: 'Non authentifié. Reconnectez-vous.' }, { status: 401 });
   }
 
   const ip = request?.headers.get('x-forwarded-for') || 'local';
@@ -91,30 +77,12 @@ export async function requireAuth(request?: Request): Promise<NextResponse | nul
   return null;
 }
 
-export async function isAuthEnabled(): Promise<boolean> {
-  const config = await readConfig();
-  const password = getEffectivePassword(config.appPassword);
-  return password.length > 0;
-}
-
-export async function checkSession(request?: Request): Promise<boolean> {
-  const config = await readConfig();
-  const secret = getEffectiveSecret(config.appSecret);
+export async function checkSession(): Promise<boolean> {
+  const secret = await getEffectiveSecret();
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return false;
   return verifySessionToken(token, secret);
-}
-
-export async function login(password: string): Promise<{ success: boolean; token?: string }> {
-  const config = await readConfig();
-  const expected = getEffectivePassword(config.appPassword);
-  if (!expected || !validatePassword(password, expected)) {
-    return { success: false };
-  }
-  const secret = getEffectiveSecret(config.appSecret);
-  const token = createSessionToken(secret);
-  return { success: true, token };
 }
 
 export function createSessionCookie(token: string): { name: string; value: string; options: Record<string, unknown> } {
