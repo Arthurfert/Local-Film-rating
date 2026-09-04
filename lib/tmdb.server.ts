@@ -17,25 +17,19 @@ import { readConfig } from './config';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_ORIGIN = 'https://api.themoviedb.org';
 
-let tmdbApiKey = process.env.TMDB_API_KEY || '';
-let tmdbReadAccessToken = process.env.TMDB_API_READ_ACCESS_TOKEN || '';
-let credsLoaded = false;
-
-async function ensureCreds(): Promise<void> {
-    if (credsLoaded) return;
+async function getCreds(): Promise<{ apiKey: string; accessToken: string }> {
     try {
         const config = await readConfig();
-        tmdbApiKey = config.tmdbApiKey || process.env.TMDB_API_KEY || '';
-        tmdbReadAccessToken = config.tmdbApiReadAccessToken || process.env.TMDB_API_READ_ACCESS_TOKEN || '';
+        return {
+            apiKey: config.tmdbApiKey || process.env.TMDB_API_KEY || '',
+            accessToken: config.tmdbApiReadAccessToken || process.env.TMDB_API_READ_ACCESS_TOKEN || '',
+        };
     } catch {
-        // fallback to env defaults already set
+        return {
+            apiKey: process.env.TMDB_API_KEY || '',
+            accessToken: process.env.TMDB_API_READ_ACCESS_TOKEN || '',
+        };
     }
-    credsLoaded = true;
-}
-
-async function getCreds(): Promise<{ apiKey: string; accessToken: string }> {
-    await ensureCreds();
-    return { apiKey: tmdbApiKey, accessToken: tmdbReadAccessToken };
 }
 
 type CacheEntry<T> = {
