@@ -126,7 +126,9 @@ export default function SearchBar({ onWatchlistChange }: SearchBarProps = {}) {
           
           {/* Icône de chargement ou bouton clear */}
           {isLoading ? (
-            <Loader2 className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400 animate-spin" />
+            <div className="absolute right-5 top-1/2 -translate-y-1/2">
+              <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+            </div>
           ) : query && (
             <button
               onClick={clearSearch}
