@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import type { TMDBMediaItem, SearchMediaResponse, Review, WatchlistItem } from '@/lib/types';
 import SearchResults from './SearchResults';
@@ -17,6 +17,11 @@ export default function SearchBar({ onWatchlistChange }: SearchBarProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Annule la requête précédente à chaque nouvelle frappe pour éviter
+  // les réponses hors ordre (course entre requêtes qui donne
+  // l'impression d'une recherche lente / qui affiche de vieux résultats).
+  const abortRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef(0);
 
   // Charger les reviews existantes et la watchlist au montage
   useEffect(() => {
@@ -45,17 +50,26 @@ export default function SearchBar({ onWatchlistChange }: SearchBarProps = {}) {
   // Debounced search (films + séries)
   const searchMedia = useCallback(async (searchQuery: string) => {
     if (searchQuery.trim().length < 2) {
+      abortRef.current?.abort();
+      abortRef.current = null;
       setResults([]);
       setIsOpen(false);
       return;
     }
+
+    // Annuler la requête en vol : seule la dernière frappe compte.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const requestId = ++requestIdRef.current;
 
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await fetch(
-        `/api/search?query=${encodeURIComponent(searchQuery)}`
+        `/api/search?query=${encodeURIComponent(searchQuery)}`,
+        { signal: controller.signal }
       );
 
       if (!response.ok) {
@@ -63,13 +77,16 @@ export default function SearchBar({ onWatchlistChange }: SearchBarProps = {}) {
       }
 
       const data: SearchMediaResponse = await response.json();
+      // Ignorer les réponses arrivées après une frappe plus récente.
+      if (requestIdRef.current !== requestId) return;
       setResults(data.results);
       setIsOpen(true);
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
       setResults([]);
     } finally {
-      setIsLoading(false);
+      if (requestIdRef.current === requestId) setIsLoading(false);
     }
   }, []);
 

@@ -1,8 +1,6 @@
 // ============================================
-// Utilitaires TMDB côté serveur avec HTTP/2
+// Utilitaires TMDB côté serveur (fetch + cache)
 // ============================================
-
-import http2 from 'node:http2';
 
 import type {
     TMDBSearchResponse,
@@ -15,21 +13,38 @@ import type {
 import { readConfig } from './config';
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-const TMDB_ORIGIN = 'https://api.themoviedb.org';
 
-async function getCreds(): Promise<{ apiKey: string; accessToken: string }> {
+// Timeout par requête TMDB (ms). Sans ça, une requête bloquée
+// laisse le spinner tourner indéfiniment.
+const TMDB_TIMEOUT_MS = 10_000;
+
+type Creds = { apiKey: string; accessToken: string };
+
+// Les credentials sont lus depuis data/config.json (disque).
+// On les met en cache brièvement pour éviter 1 lecture disque
+// par frappe clavier dans la barre de recherche.
+let credsCache: { expiresAt: number; value: Creds } | null = null;
+const CREDS_TTL_MS = 60_000;
+
+async function getCreds(): Promise<Creds> {
+    if (credsCache && credsCache.expiresAt > Date.now()) {
+        return credsCache.value;
+    }
+    let value: Creds;
     try {
         const config = await readConfig();
-        return {
+        value = {
             apiKey: config.tmdbApiKey || process.env.TMDB_API_KEY || '',
             accessToken: config.tmdbApiReadAccessToken || process.env.TMDB_API_READ_ACCESS_TOKEN || '',
         };
     } catch {
-        return {
+        value = {
             apiKey: process.env.TMDB_API_KEY || '',
             accessToken: process.env.TMDB_API_READ_ACCESS_TOKEN || '',
         };
     }
+    credsCache = { expiresAt: Date.now() + CREDS_TTL_MS, value };
+    return value;
 }
 
 type CacheEntry<T> = {
@@ -39,13 +54,12 @@ type CacheEntry<T> = {
 
 const responseCache = new Map<string, CacheEntry<unknown>>();
 const CACHE_MAX_SIZE = 500;
-let http2Session: http2.ClientHttp2Session | null = null;
 
 function getHeaders(accessToken: string): Record<string, string> {
     if (accessToken) {
         return {
-        authorization: `Bearer ${accessToken}`,
-        accept: 'application/json',
+            authorization: `Bearer ${accessToken}`,
+            accept: 'application/json',
         };
     }
 
@@ -61,6 +75,11 @@ function buildUrl(endpoint: string, accessToken: string, apiKey: string, params:
         url.searchParams.set('api_key', apiKey);
     }
 
+    // IMPORTANT : passer les valeurs brutes ici.
+    // URLSearchParams s'occupe déjà de l'encodage — un
+    // encodeURIComponent() en amont double-encode la requête
+    // (ex. "star wars" -> "star%2520wars") et TMDB renvoie
+    // des résultats vides ou hors sujet.
     Object.entries(params).forEach(([key, value]) => {
         url.searchParams.set(key, value);
     });
@@ -68,89 +87,60 @@ function buildUrl(endpoint: string, accessToken: string, apiKey: string, params:
     return url.toString();
 }
 
-function getHttp2Session(): http2.ClientHttp2Session {
-    if (http2Session && !http2Session.closed && !http2Session.destroyed) {
-        return http2Session;
-    }
-
-    http2Session = http2.connect(TMDB_ORIGIN);
-
-    http2Session.on('error', (error) => {
-        console.error('TMDB HTTP/2 session error:', error);
-    });
-
-    http2Session.on('close', () => {
-        http2Session = null;
-    });
-
-    return http2Session;
-}
-
 function getCacheKey(url: string, hasAccessToken: boolean): string {
     return `${hasAccessToken ? 'bearer' : 'api-key'}:${url}`;
 }
 
-async function requestJson<T>(url: string, accessToken: string, revalidateSeconds: number): Promise<T> {
-    const cacheKey = getCacheKey(url, !!accessToken);
-    const cached = responseCache.get(cacheKey) as CacheEntry<T> | undefined;
-
+function cacheGet<T>(key: string): T | undefined {
+    const cached = responseCache.get(key) as CacheEntry<T> | undefined;
     if (cached && cached.expiresAt > Date.now()) {
         return cached.value;
     }
+    if (cached) responseCache.delete(key);
+    return undefined;
+}
 
-    const parsedUrl = new URL(url);
-    const session = getHttp2Session();
+function cacheSet<T>(key: string, value: T, revalidateSeconds: number): void {
+    if (responseCache.size >= CACHE_MAX_SIZE) {
+        const firstKey = responseCache.keys().next().value;
+        if (firstKey) responseCache.delete(firstKey);
+    }
+    responseCache.set(key, {
+        expiresAt: Date.now() + revalidateSeconds * 1000,
+        value,
+    });
+}
 
-    return new Promise<T>((resolve, reject) => {
-        const request = session.request({
-        ':method': 'GET',
-        ':path': `${parsedUrl.pathname}${parsedUrl.search}`,
-        ':authority': parsedUrl.host,
-        ':scheme': parsedUrl.protocol.replace(':', ''),
-        ...getHeaders(accessToken),
+async function requestJson<T>(url: string, accessToken: string, revalidateSeconds: number): Promise<T> {
+    const cacheKey = getCacheKey(url, !!accessToken);
+    const cached = cacheGet<T>(cacheKey);
+    if (cached !== undefined) return cached;
+
+    let response: Response;
+    try {
+        response = await fetch(url, {
+            headers: getHeaders(accessToken),
+            // AbortSignal.timeout évite les requêtes pendantes qui
+            // donnaient l'impression d'une API "très lente".
+            signal: AbortSignal.timeout(TMDB_TIMEOUT_MS),
         });
+    } catch (error) {
+        throw new Error(`TMDB API Error: request failed - ${(error as Error).message}`);
+    }
 
-    const chunks: Buffer[] = [];
-    let statusCode = 0;
+    if (!response.ok) {
+        const body = (await response.text().catch(() => '')).slice(0, 500);
+        throw new Error(`TMDB API Error: ${response.status} ${body || response.statusText}`);
+    }
 
-    request.on('response', (headers) => {
-        statusCode = Number(headers[':status'] ?? 0);
-    });
-
-    request.on('data', (chunk) => {
-        chunks.push(Buffer.from(chunk));
-    });
-
-    request.on('error', (error) => {
-        reject(error);
-    });
-
-    request.on('end', () => {
-        const body = Buffer.concat(chunks).toString('utf8');
-
-        if (statusCode < 200 || statusCode >= 300) {
-            reject(new Error(`TMDB API Error: ${statusCode} ${body || 'Unknown error'}`));
-            return;
-        }
-
-        try {
-            const value = JSON.parse(body) as T;
-            if (responseCache.size >= CACHE_MAX_SIZE) {
-              const firstKey = responseCache.keys().next().value;
-              if (firstKey) responseCache.delete(firstKey);
-            }
-            responseCache.set(cacheKey, {
-            expiresAt: Date.now() + revalidateSeconds * 1000,
-            value,
-            });
-            resolve(value);
-        } catch (error) {
-            reject(new Error(`TMDB API Error: invalid JSON response - ${(error as Error).message}`));
-        }
-        });
-
-        request.end();
-    });
+    let value: T;
+    try {
+        value = (await response.json()) as T;
+    } catch (error) {
+        throw new Error(`TMDB API Error: invalid JSON response - ${(error as Error).message}`);
+    }
+    cacheSet(cacheKey, value, revalidateSeconds);
+    return value;
 }
 
 async function tmdbGet<T>(endpoint: string, params: Record<string, string>, revalidateSeconds: number): Promise<T> {
@@ -165,20 +155,40 @@ export async function searchMovies(
     language: string = 'fr-FR'
     ): Promise<TMDBSearchResponse> {
     return tmdbGet<TMDBSearchResponse>('/search/movie', {
-        query: encodeURIComponent(query),
+        query,
         page: page.toString(),
         language,
         include_adult: 'false',
-    }, 3600);
+    }, 300);
 }
 
 export async function getMovieDetails(
     movieId: number,
     language: string = 'fr-FR'
     ): Promise<TMDBMovieDetails> {
-    return tmdbGet<TMDBMovieDetails>(`/movie/${movieId}`, {
+    const details = await tmdbGet<TMDBMovieDetails>(`/movie/${movieId}`, {
         language,
     }, 86400);
+
+    // Fallback images : TMDB peut renvoyer poster/backdrop null pour
+    // la langue demandée alors qu'un visuel existe en anglais
+    // (le site tmdb.org fait ce fallback, l'app affichait "No Image").
+    if ((details.poster_path === null || details.backdrop_path === null) && language !== 'en-US') {
+        try {
+            const fallback = await tmdbGet<TMDBMovieDetails>(`/movie/${movieId}`, {
+                language: 'en-US',
+            }, 86400);
+            return {
+                ...details,
+                poster_path: details.poster_path ?? fallback.poster_path,
+                backdrop_path: details.backdrop_path ?? fallback.backdrop_path,
+            };
+        } catch {
+            return details;
+        }
+    }
+
+    return details;
 }
 
 export async function getPopularMovies(
@@ -206,20 +216,66 @@ export async function searchTVShows(
     language: string = 'fr-FR'
     ): Promise<TMDBTVSearchResponse> {
     return tmdbGet<TMDBTVSearchResponse>('/search/tv', {
-        query: encodeURIComponent(query),
+        query,
         page: page.toString(),
         language,
         include_adult: 'false',
-    }, 3600);
+    }, 300);
 }
 
 export async function getTVShowDetails(
     tvId: number,
     language: string = 'fr-FR'
     ): Promise<TMDBTVShowDetails> {
-    return tmdbGet<TMDBTVShowDetails>(`/tv/${tvId}`, {
+    const details = await tmdbGet<TMDBTVShowDetails>(`/tv/${tvId}`, {
         language,
     }, 86400);
+
+    if ((details.poster_path === null || details.backdrop_path === null) && language !== 'en-US') {
+        try {
+            const fallback = await tmdbGet<TMDBTVShowDetails>(`/tv/${tvId}`, {
+                language: 'en-US',
+            }, 86400);
+            return {
+                ...details,
+                poster_path: details.poster_path ?? fallback.poster_path,
+                backdrop_path: details.backdrop_path ?? fallback.backdrop_path,
+            };
+        } catch {
+            return details;
+        }
+    }
+
+    return details;
+}
+
+// Réponse brute de /search/multi : mélange films, séries et personnes.
+interface TMDBMultiRawItem {
+    id: number;
+    media_type?: string;
+    // Champs film
+    title?: string;
+    original_title?: string;
+    release_date?: string;
+    // Champs série / personne
+    name?: string;
+    original_name?: string;
+    first_air_date?: string;
+    overview?: string;
+    poster_path?: string | null;
+    backdrop_path?: string | null;
+    vote_average?: number;
+    vote_count?: number;
+    popularity?: number;
+    genre_ids?: number[];
+    original_language?: string;
+}
+
+interface TMDBMultiRawResponse {
+    page: number;
+    results: TMDBMultiRawItem[];
+    total_pages: number;
+    total_results: number;
 }
 
 export async function searchMulti(
@@ -227,49 +283,59 @@ export async function searchMulti(
     page: number = 1,
     language: string = 'fr-FR'
     ): Promise<{ results: TMDBMediaItem[]; total_results: number; total_pages: number; page: number }> {
-    const [moviesResponse, tvResponse] = await Promise.all([
-        searchMovies(query, page, language),
-        searchTVShows(query, page, language),
-    ]);
+    // Un seul appel /search/multi au lieu de 2 appels (movie + tv) :
+    // on divise la latence par ~2 et on garde le classement par
+    // pertinence de TMDB (le tri manuel par popularité cassait ce
+    // classement et donnait des résultats surprenants).
+    const response = await tmdbGet<TMDBMultiRawResponse>('/search/multi', {
+        query,
+        page: page.toString(),
+        language,
+        include_adult: 'false',
+    }, 300);
 
-    const normalizedMovies: TMDBMediaItem[] = moviesResponse.results.map((movie) => ({
-        id: movie.id,
-        title: movie.title,
-        original_title: movie.original_title,
-        overview: movie.overview,
-        poster_path: movie.poster_path,
-        backdrop_path: movie.backdrop_path,
-        release_date: movie.release_date,
-        vote_average: movie.vote_average,
-        vote_count: movie.vote_count,
-        popularity: movie.popularity,
-        genre_ids: movie.genre_ids,
-        original_language: movie.original_language,
-        media_type: 'movie' as MediaType,
-    }));
-
-    const normalizedTV: TMDBMediaItem[] = tvResponse.results.map((tv) => ({
-        id: tv.id,
-        title: tv.name,
-        original_title: tv.original_name,
-        overview: tv.overview,
-        poster_path: tv.poster_path,
-        backdrop_path: tv.backdrop_path,
-        release_date: tv.first_air_date,
-        vote_average: tv.vote_average,
-        vote_count: tv.vote_count,
-        popularity: tv.popularity,
-        genre_ids: tv.genre_ids,
-        original_language: tv.original_language,
-        media_type: 'tv' as MediaType,
-    }));
-
-    const combinedResults = [...normalizedMovies, ...normalizedTV].sort((a, b) => b.popularity - a.popularity);
+    const results: TMDBMediaItem[] = [];
+    for (const item of response.results) {
+        if (item.media_type === 'movie') {
+            results.push({
+                id: item.id,
+                title: item.title ?? '',
+                original_title: item.original_title ?? item.title ?? '',
+                overview: item.overview ?? '',
+                poster_path: item.poster_path ?? null,
+                backdrop_path: item.backdrop_path ?? null,
+                release_date: item.release_date ?? '',
+                vote_average: item.vote_average ?? 0,
+                vote_count: item.vote_count ?? 0,
+                popularity: item.popularity ?? 0,
+                genre_ids: item.genre_ids ?? [],
+                original_language: item.original_language ?? '',
+                media_type: 'movie' as MediaType,
+            });
+        } else if (item.media_type === 'tv') {
+            results.push({
+                id: item.id,
+                title: item.name ?? '',
+                original_title: item.original_name ?? item.name ?? '',
+                overview: item.overview ?? '',
+                poster_path: item.poster_path ?? null,
+                backdrop_path: item.backdrop_path ?? null,
+                release_date: item.first_air_date ?? '',
+                vote_average: item.vote_average ?? 0,
+                vote_count: item.vote_count ?? 0,
+                popularity: item.popularity ?? 0,
+                genre_ids: item.genre_ids ?? [],
+                original_language: item.original_language ?? '',
+                media_type: 'tv' as MediaType,
+            });
+        }
+        // On ignore les personnes ("person") : pas de poster film/série.
+    }
 
     return {
-        results: combinedResults,
-        total_results: moviesResponse.total_results + tvResponse.total_results,
-        total_pages: Math.max(moviesResponse.total_pages, tvResponse.total_pages),
-        page,
+        results,
+        total_results: response.total_results,
+        total_pages: response.total_pages,
+        page: response.page,
     };
 }

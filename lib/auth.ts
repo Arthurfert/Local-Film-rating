@@ -54,7 +54,17 @@ export async function requireAuth(request?: Request): Promise<NextResponse | nul
       try {
         const sourceUrl = origin || referer || '';
         const parsed = new URL(sourceUrl);
-        if (parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
+        // Autoriser le same-origin quel que soit le hostname (localhost,
+        // IP LAN, nom Docker, domaine perso) : on compare l'origine au
+        // Host de la requête au lieu d'une liste en dur. Le cross-origin
+        // réel reste refusé (protection CSRF).
+        const hostHeader =
+          request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+        const requestHostname = hostHeader.split(':')[0].toLowerCase();
+        const sourceHostname = parsed.hostname.toLowerCase();
+        const isLocalhost =
+          sourceHostname === 'localhost' || sourceHostname === '127.0.0.1' || sourceHostname === '::1';
+        if (sourceHostname !== requestHostname && !isLocalhost) {
           return NextResponse.json({ error: 'Requête cross-origin refusée' }, { status: 403 });
         }
       } catch {
