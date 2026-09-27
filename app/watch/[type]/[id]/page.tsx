@@ -76,7 +76,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
               type={type as 'movie' | 'tv'}
               id={mediaId}
               title={title}
-              poster={media.poster_path ? getPosterUrl(media.poster_path, 'w500') : undefined}
+              poster={media.poster_path ? getPosterUrl(media.poster_path, 'w342') : undefined}
               seasons={seasons}
             />
           </Suspense>

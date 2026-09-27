@@ -46,6 +46,8 @@ export default async function MediaPage({ params }: MediaPageProps) {
             fill
             className="object-cover object-top"
             priority
+            sizes="100vw"
+            fallbackSrc="/placeholder-backdrop.svg"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-dark-200 to-dark-300" />
@@ -73,11 +75,15 @@ export default async function MediaPage({ params }: MediaPageProps) {
             <div className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
               {media.poster_path ? (
                 <OptimizedImage
-                  src={getPosterUrl(media.poster_path, 'w500')}
+                  // w342 comme les cartes : même URL que la page
+                  // d'accueil -> hit du cache navigateur au lieu d'un
+                  // 2e téléchargement. Le conteneur fait max 320px.
+                  // Pas de priority : caché sur mobile (hidden md:block).
+                  src={getPosterUrl(media.poster_path, 'w342')}
                   alt={title}
                   fill
                   className="object-cover"
-                  priority
+                  sizes="(max-width: 768px) 0vw, (max-width: 1280px) 288px, 320px"
                 />
               ) : (
                 <div className="w-full h-full bg-white/10 flex items-center justify-center">

@@ -8,4 +8,10 @@ services:
       - '3000:3000'
     volumes:
       - ./data:/app/data
+    # Contourne le DNS embarqué de Docker (127.0.0.11) qui échoue à
+    # résoudre image.tmdb.org (EAI_AGAIN) : on utilise des résolveurs
+    # publics fiables comme upstream.
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     restart: unless-stopped

@@ -21,7 +21,9 @@ export function getPosterUrl(
 
 export function getBackdropUrl(
   backdropPath: string | null,
-  size: BackdropSize = 'w1280'
+  // w780 suffit : le backdrop est affiché sous des dégradés sombres et
+  // w1280 pèse ~2x plus lourd pour un gain visuel nul.
+  size: BackdropSize = 'w780'
 ): string {
   if (!backdropPath) {
     return '/placeholder-backdrop.svg';

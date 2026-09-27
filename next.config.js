@@ -9,6 +9,11 @@ const nextConfig = {
         pathname: '/t/p/**',
       },
     ],
+    // TMDB paths are content-hashed and immutable, so the optimized
+    // output can be cached long instead of re-optimized on every
+    // navigation (which made covers feel slow / load twice).
+    minimumCacheTTL: 86400,
+    formats: ['image/avif', 'image/webp'],
   },
   async headers() {
     return [

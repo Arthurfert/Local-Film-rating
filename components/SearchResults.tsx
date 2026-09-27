@@ -103,7 +103,7 @@ export default function SearchResults({
                       alt={media.title}
                       fill
                       className="object-cover"
-                      sizes="64px"
+                      sizes="96px"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-500">
