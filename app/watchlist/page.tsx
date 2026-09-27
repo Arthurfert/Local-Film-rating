@@ -87,14 +87,11 @@ export default function WatchlistPage() {
 
       <section className="mb-20 relative">
         <div className="text-center mb-10 max-w-6xl mx-auto pt-6">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight leading-snug mb-6 lg:mb-8">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight leading-snug mb-6 lg:mb-8 select-none">
             <span className="block text-blue-500 drop-shadow-[0_2px_8px_rgba(59,130,246,0.25)] pb-2 py-1">
               Votre Watchlist
             </span>
           </h1>
-          <p className="text-gray-400 text-base md:text-lg lg:text-xl xl:text-2xl max-w-3xl mx-auto leading-relaxed">
-            Vos films et séries à regarder.
-          </p>
         </div>
 
         {/* Barre de recherche avec enveloppe en verre et lueur */}
