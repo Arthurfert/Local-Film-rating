@@ -104,6 +104,42 @@ export interface TMDBTVSeason {
   vote_average: number;
 }
 
+// Épisode d'une saison (GET /tv/{id}/season/{n})
+export interface TMDBEpisode {
+  id: number;
+  episode_number: number;
+  season_number: number;
+  name: string;
+  overview: string;
+  still_path: string | null;
+  air_date: string | null;
+  runtime: number | null;
+  vote_average: number;
+  vote_count: number;
+}
+
+// Détails d'une saison avec tous ses épisodes (un seul appel API)
+export interface TMDBSeasonDetails {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string | null;
+  season_number: number;
+  air_date: string | null;
+  episodes: TMDBEpisode[];
+}
+
+// Épisode normalisé exposé par /api/tv/[id]/season/[season]
+export interface SeasonEpisodeItem {
+  episode_number: number;
+  name: string;
+  overview: string;
+  still_path: string | null;
+  air_date: string | null;
+  runtime: number | null;
+  vote_average: number;
+}
+
 // Détails d'une série TV
 export interface TMDBTVShowDetails extends Omit<TMDBTVShow, 'genre_ids'> {
   genres: TMDBGenre[];

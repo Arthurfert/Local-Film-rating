@@ -5,7 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import VideoPlayer from '@/components/VideoPlayer';
 import type { StreamResponse } from '@/lib/stream';
 import { saveProgress } from '@/lib/seriesProgress';
-import { AlertCircle, Loader2, ChevronDown } from 'lucide-react';
+import type { SeasonEpisodeItem } from '@/lib/types';
+import { AlertCircle, Loader2, ChevronDown, Check, Clock } from 'lucide-react';
 
 interface SeasonInfo {
   seasonNumber: number;
@@ -79,6 +80,171 @@ function CustomSelect({
               {renderOption ? renderOption(opt.label) : opt.label}
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EpisodeSelect({
+  seriesId,
+  seasonNumber,
+  episodeCount,
+  value,
+  onChange,
+}: {
+  seriesId: number;
+  seasonNumber: number;
+  episodeCount: number;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const cacheRef = useRef(new Map<number, SeasonEpisodeItem[]>());
+  const [episodes, setEpisodes] = useState<SeasonEpisodeItem[] | null>(
+    cacheRef.current.get(seasonNumber) ?? null
+  );
+  const [loading, setLoading] = useState(false);
+
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (ref.current && !ref.current.contains(e.target as Node)) {
+      setOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [open, handleClickOutside]);
+
+  // Charger les détails des épisodes (1 seul appel par saison, mis en cache)
+  useEffect(() => {
+    const cached = cacheRef.current.get(seasonNumber);
+    if (cached) {
+      setEpisodes(cached);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    fetch(`/api/tv/${seriesId}/season/${seasonNumber}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('fetch failed'))))
+      .then((data) => {
+        if (cancelled) return;
+        const list: SeasonEpisodeItem[] = data.episodes || [];
+        cacheRef.current.set(seasonNumber, list);
+        setEpisodes(list);
+      })
+      .catch(() => {
+        if (!cancelled) setEpisodes(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [seriesId, seasonNumber]);
+
+  const current = episodes?.find((e) => e.episode_number === value);
+
+  const fallbackOptions = Array.from({ length: episodeCount }, (_, i) => i + 1);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 bg-dark-200 border border-white/10 rounded-xl px-4 py-2.5 pr-3 text-sm text-white/90 font-medium focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] cursor-pointer whitespace-nowrap max-w-[16rem]"
+      >
+        <span className="truncate">
+          Épisode {value}
+          {current?.name ? <span className="text-white/50"> — {current.name}</span> : ''}
+        </span>
+        <ChevronDown className={`w-3.5 h-3.5 shrink-0 text-white/40 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1.5 w-[min(28rem,90vw)] max-h-[50vh] overflow-y-auto bg-dark-300/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl z-50 animate-fade-in">
+          {loading && !episodes ? (
+            <div className="p-2 space-y-2">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex gap-3 p-3">
+                  <div className="skeleton w-9 h-9 rounded-lg shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="skeleton h-4 w-1/3 rounded" />
+                    <div className="skeleton h-3 w-full rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : episodes && episodes.length > 0 ? (
+            episodes.map((ep) => {
+              const isCurrent = ep.episode_number === value;
+              return (
+                <button
+                  key={ep.episode_number}
+                  type="button"
+                  onClick={() => {
+                    onChange(ep.episode_number);
+                    setOpen(false);
+                  }}
+                  className={`flex w-full items-start gap-3 p-3 text-left transition-colors duration-200 border-b border-white/5 last:border-0 ${
+                    isCurrent ? 'bg-red-500/15' : 'hover:bg-white/5'
+                  }`}
+                >
+                  <span
+                    className={`flex w-9 h-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${
+                      isCurrent ? 'bg-red-500 text-white' : 'bg-white/5 text-white/60'
+                    }`}
+                  >
+                    {ep.episode_number}
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="flex items-center gap-2">
+                      <span className={`text-sm font-semibold truncate ${isCurrent ? 'text-white' : 'text-white/90'}`}>
+                        {ep.name || `Épisode ${ep.episode_number}`}
+                      </span>
+                      {isCurrent && <Check className="w-4 h-4 shrink-0 text-red-400" />}
+                    </span>
+                    {ep.overview && (
+                      <span className="mt-0.5 block text-xs text-white/50 line-clamp-2 leading-relaxed">
+                        {ep.overview}
+                      </span>
+                    )}
+                    <span className="mt-1 flex items-center gap-3 text-[11px] text-white/40">
+                      {ep.runtime ? (
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {ep.runtime} min
+                        </span>
+                      ) : null}
+                      {ep.air_date ? <span>{new Date(ep.air_date).toLocaleDateString('fr-FR')}</span> : null}
+                    </span>
+                  </span>
+                </button>
+              );
+            })
+          ) : (
+            fallbackOptions.map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => {
+                  onChange(n);
+                  setOpen(false);
+                }}
+                className={`block w-full text-left px-4 py-1.5 text-sm transition-colors duration-200 ${
+                  n === value
+                    ? 'text-white bg-red-500/15'
+                    : 'text-white/70 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {n}
+              </button>
+            ))
+          )}
         </div>
       )}
     </div>
@@ -252,10 +418,12 @@ export default function WatchClient({
 
             <div className="flex items-center gap-2">
               <label className="text-xs font-medium text-white/50 tracking-wide uppercase">Épisode</label>
-              <CustomSelect
+              <EpisodeSelect
+                seriesId={id}
+                seasonNumber={seasonNumber}
+                episodeCount={maxEp}
                 value={ep}
                 onChange={handleEpisodeChange}
-                options={Array.from({ length: maxEp }, (_, i) => ({ value: i + 1, label: `${i + 1}` }))}
               />
             </div>
           </>

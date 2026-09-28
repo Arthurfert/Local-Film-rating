@@ -7,6 +7,7 @@ import type {
     TMDBMovieDetails,
     TMDBTVSearchResponse,
     TMDBTVShowDetails,
+    TMDBSeasonDetails,
     TMDBMediaItem,
     MediaType,
 } from './types';
@@ -243,6 +244,43 @@ export async function getTVShowDetails(
             };
         } catch {
             return details;
+        }
+    }
+
+    return details;
+}
+
+export async function getSeasonDetails(
+    tvId: number,
+    seasonNumber: number,
+    language: string = 'fr-FR'
+    ): Promise<TMDBSeasonDetails> {
+    // Un seul appel retourne TOUS les épisodes de la saison
+    // (nom, résumé, durée, date de diffusion) — inutile d'appeler
+    // la route episode N fois.
+    const details = await tmdbGet<TMDBSeasonDetails>(`/tv/${tvId}/season/${seasonNumber}`, {
+        language,
+    }, 86400);
+
+    // Fallback en-US pour les épisodes sans titre/résumé traduit
+    // (fréquent sur les séries récentes ou confidentielles).
+    if (language !== 'en-US' && details.episodes.some((e) => !e.name || !e.overview)) {
+        try {
+            const fallback = await tmdbGet<TMDBSeasonDetails>(`/tv/${tvId}/season/${seasonNumber}`, {
+                language: 'en-US',
+            }, 86400);
+            const fallbackByNumber = new Map(fallback.episodes.map((e) => [e.episode_number, e]));
+            details.episodes = details.episodes.map((e) => {
+                const f = fallbackByNumber.get(e.episode_number);
+                if (!f) return e;
+                return {
+                    ...e,
+                    name: e.name || f.name,
+                    overview: e.overview || f.overview,
+                };
+            });
+        } catch {
+            // On garde la version française partielle
         }
     }
 
